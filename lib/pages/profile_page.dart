@@ -4,21 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:quarrel/pages/edit_profile_page.dart';
 import 'package:quarrel/pages/edit_account_page.dart';
+import 'package:quarrel/services/controllers.dart';
 import 'package:quarrel/widgets/status_icons.dart';
-
-var update = 0.obs;
-var currentUserDataGlobalProfile;
+import 'package:shared_preferences/shared_preferences.dart';
 
 class Profile extends StatelessWidget {
-  final Map currentUserData;
-  final Function toggleMenu;
+  final MainController mainController = Get.find<MainController>();
 
-  Profile(
-      {super.key,
-      required this.currentUserData,
-      required this.toggleMenu,}){
-    currentUserDataGlobalProfile = currentUserData;
-  }
+  Profile({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -56,12 +49,14 @@ class Profile extends StatelessWidget {
                                 shape: BoxShape.circle,
                                 border: Border.all(width: 6)),
                             child: CircleAvatar(
-                              backgroundImage:
-                              currentUserDataGlobalProfile['profile_picture'] != ''
-                                      ? CachedNetworkImageProvider(
-                                  currentUserDataGlobalProfile['profile_picture'])
-                                      : const AssetImage('assets/images/default.png')
-                                          as ImageProvider,
+                              backgroundImage: mainController
+                                          .currentUserData['profile_picture'] !=
+                                      ''
+                                  ? CachedNetworkImageProvider(mainController
+                                      .currentUserData['profile_picture'])
+                                  : const AssetImage(
+                                          'assets/images/default.png')
+                                      as ImageProvider,
                               // radius: 10,
                               backgroundColor: Colors.grey.shade900,
                             ),
@@ -70,7 +65,8 @@ class Profile extends StatelessWidget {
                             bottom: 3,
                             right: 3,
                             child: StatusIcon(
-                              icon_type: currentUserDataGlobalProfile['display_status'],
+                              icon_type: mainController
+                                  .currentUserData['display_status'],
                               icon_size: 24,
                               icon_border: 4,
                             ),
@@ -109,9 +105,9 @@ class Profile extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        update.value == 1
-                            ? currentUserDataGlobalProfile['display_name']
-                            : currentUserDataGlobalProfile['display_name'],
+                        mainController.updateM.value == 1
+                            ? mainController.currentUserData['display_name']
+                            : mainController.currentUserData['display_name'],
                         style: TextStyle(
                             fontSize: 20, fontWeight: FontWeight.bold),
                       ),
@@ -119,14 +115,14 @@ class Profile extends StatelessWidget {
                         height: 3,
                       ),
                       Text(
-                        currentUserDataGlobalProfile['username'],
+                        mainController.currentUserData['username'],
                         style: TextStyle(fontSize: 14),
                       ),
                       SizedBox(
                         height: 3,
                       ),
                       Text(
-                        currentUserDataGlobalProfile['pronounce'],
+                        mainController.currentUserData['pronounce'],
                         style: TextStyle(fontSize: 15, color: Colors.grey),
                       ),
                       SizedBox(
@@ -139,7 +135,8 @@ class Profile extends StatelessWidget {
                           children: [
                             InkWell(
                               onTap: () {
-                                toggleMenu(['null', 'null', 'null', 'null']);
+                                mainController.toggleMenu(
+                                    ['null', 'null', 'null', 'null']);
                               },
                               child: Container(
                                   height: 38,
@@ -169,9 +166,7 @@ class Profile extends StatelessWidget {
                             InkWell(
                               onTap: () {
                                 print('Editing Profile');
-                                Get.to(EditProfile(
-                                  currentUserData: currentUserDataGlobalProfile,
-                                ));
+                                Get.to(EditProfile());
                               },
                               child: Container(
                                 height: 38,
@@ -226,7 +221,7 @@ class Profile extends StatelessWidget {
                         height: 10,
                       ),
                       Text(
-                        currentUserDataGlobalProfile['about_me'],
+                        mainController.currentUserData['about_me'],
                         style: TextStyle(
                             fontSize: 15, color: Colors.grey.shade300),
                       )
@@ -242,7 +237,7 @@ class Profile extends StatelessWidget {
                 //         await SharedPreferences.getInstance();
                 //     await prefs.remove('email');
                 //     await prefs.remove('password');
-                //     Get.offAll(Signin());
+                //     Get.offAll();
                 //   },
                 //   child: Align(
                 //     alignment: Alignment.centerRight,
@@ -270,9 +265,4 @@ class Profile extends StatelessWidget {
       ),
     );
   }
-}
-
-void updateCurrentUserDataGlobalProfile(newData){
-  currentUserDataGlobalProfile = newData;
-  update.value += 1;
 }

@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:quarrel/services/controllers.dart';
 import 'package:quarrel/services/firebase_services.dart';
 import 'package:quarrel/widgets/status_icons.dart';
 import 'package:quarrel/widgets/option_tile.dart';
@@ -79,12 +80,11 @@ class UserGroupPopup extends StatelessWidget {
 class MessagePopup extends StatelessWidget {
   final Map messageSelected;
   final String chatId;
-  final Map currentUserData;
+  final MainController mainController = Get.find<MainController>();
 
-  const MessagePopup(
+  MessagePopup(
       {super.key,
       required this.messageSelected,
-      required this.currentUserData,
       required this.chatId});
 
   @override
@@ -120,7 +120,7 @@ class MessagePopup extends StatelessWidget {
                       },
                       action_icon: Icons.copy,
                       action_name: 'Copy Text'),
-                  messageSelected['sender_id'] == currentUserData['id']
+                  messageSelected['sender_id'] == mainController.currentUserData['id']
                       ? OptionTile(
                           action: () {
                             deleteMessage(chatId, messageSelected['id']);

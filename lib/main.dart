@@ -1,3 +1,5 @@
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:get/get.dart';
@@ -5,14 +7,13 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:quarrel/pages/signin_page.dart';
 import 'package:quarrel/pages/chats_page.dart';
-
-// import 'package:quarrel/pages/notification_page.dart';
 import 'package:quarrel/pages/friends_page.dart';
 import 'package:quarrel/pages/profile_page.dart';
 import 'package:quarrel/services/firebase_services.dart';
 import 'package:quarrel/widgets/popup_menus.dart';
 import 'package:quarrel/widgets/status_icons.dart';
 import 'package:quarrel/firebase_options.dart';
+import 'package:quarrel/services/controllers.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -21,23 +22,33 @@ Future<void> main() async {
     debugShowCheckedModeBanner: false,
     theme: ThemeData.dark().copyWith(
       textTheme: ThemeData.dark().textTheme.copyWith(
-            bodyLarge: TextStyle(fontFamily: 'gg_sans'),
-            bodyMedium: TextStyle(fontFamily: 'gg_sans'),
-            bodySmall: TextStyle(fontFamily: 'gg_sans'),
+            bodyLarge: const TextStyle(fontFamily: 'gg_sans'),
+            bodyMedium: const TextStyle(fontFamily: 'gg_sans'),
+            bodySmall: const TextStyle(fontFamily: 'gg_sans'),
           ),
-      appBarTheme: AppBarTheme(
+      appBarTheme: const AppBarTheme(
           backgroundColor: Colors.black,
           titleTextStyle: TextStyle(fontFamily: 'gg_sans'),
           toolbarTextStyle: TextStyle(fontFamily: 'gg_sans')),
       scaffoldBackgroundColor: Colors.black,
     ),
+    // localizationsDelegates: [
+    //   GlobalMaterialLocalizations.delegate,
+    //   GlobalWidgetsLocalizations.delegate,
+    //   GlobalCupertinoLocalizations.delegate,
+    // ],
+    // supportedLocales: [
+    //   Locale('en'), // English
+    //   Locale('es'), // Spanish
+    // ],
+    localizationsDelegates: AppLocalizations.localizationsDelegates,
+    supportedLocales: AppLocalizations.supportedLocales,
+    locale: Locale('en'),
     home: Loading(),
   ));
 }
 
-bool result = false;
 bool initialMain = true;
-
 class Loading extends StatelessWidget {
   const Loading({super.key});
 
@@ -62,7 +73,7 @@ class Loading extends StatelessWidget {
                 ),
               ));
         }
-        return Center(child: CircularProgressIndicator());
+        return const Center(child: CircularProgressIndicator());
       },
     );
   }
@@ -74,7 +85,7 @@ class Loading extends StatelessWidget {
       print('log data available');
       userData[1]['id'] = userData[2].user.uid;
       return Home(
-        currentUserData: userData[1],
+        userData: userData[1],
       );
     } else {
       print('failed due to error:${userData[1]}');
@@ -83,56 +94,36 @@ class Loading extends StatelessWidget {
   }
 }
 
-var currentUserDataGlobalMain;
-var update = 0.obs;
-var selectedIndex = 0.obs;
-var selectedUsername = '';
-var selectedUserId = '';
-var selectedUserPic = '';
-var selectedChatType = '';
-
-var showMenu = false.obs;
-var showProfile = false.obs;
-
 class Home extends StatelessWidget {
-  final Map currentUserData;
+  final Map userData;
+  late final MainController mainController;
 
   Home({
     super.key,
-    required this.currentUserData,
+    required this.userData,
   }) {
-    currentUserDataGlobalMain = currentUserData;
-    profileListener(currentUserData['id']);
+    mainController = Get.put(MainController(currentUserData: userData));
+    profileListener(userData['id']);
   }
 
   @override
   Widget build(BuildContext context) {
     List pages = [
-      Chats(
-        toggleMenu: toggleMenu,
-        toggleProfile: toggleProfile,
-        currentUserData: currentUserDataGlobalMain,
-      ),
+      Chats(),
       // const Notifications(),
-      Friends(
-        currentUserData: currentUserDataGlobalMain,
-        toggleProfile: toggleProfile,
-      ),
-      Profile(
-        currentUserData: currentUserDataGlobalMain,
-        toggleMenu: toggleMenu,
-      )
+      Friends(),
+      Profile()
     ];
 
     return Stack(
       children: [
         Column(
           children: [
-            Obx(() => Expanded(child: pages[selectedIndex.value])),
+            Obx(() => Expanded(child: pages[mainController.selectedIndex.value])),
             Obx(() => BottomNavigationBar(
-                  currentIndex: selectedIndex.value,
+                  currentIndex: mainController.selectedIndex.value,
                   onTap: (index) {
-                    selectedIndex.value = index;
+                    mainController.selectedIndex.value = index;
                   },
                   unselectedFontSize: 10,
                   selectedFontSize: 10,
@@ -150,16 +141,16 @@ class Home extends StatelessWidget {
                         icon: Icon(Icons.people), label: 'Friends'),
                     BottomNavigationBarItem(
                         icon: Obx(() => SizedBox(
-                              height: update == 1 ? 26 : 26,
+                              height: mainController.updateM.value == 1 ? 26 : 26,
                               width: 32,
                               child: Stack(
                                 children: [
                                   CircleAvatar(
-                                    backgroundImage: currentUserDataGlobalMain[
+                                    backgroundImage: mainController.currentUserData[
                                                 'profile_picture'] !=
                                             ''
                                         ? CachedNetworkImageProvider(
-                                            currentUserDataGlobalMain[
+                                        mainController.currentUserData[
                                                 'profile_picture'])
                                         : const AssetImage(
                                                 'assets/images/default.png')
@@ -171,7 +162,7 @@ class Home extends StatelessWidget {
                                     bottom: -1,
                                     right: -1,
                                     child: StatusIcon(
-                                      icon_type: currentUserDataGlobalMain[
+                                      icon_type: mainController.currentUserData[
                                           'display_status'],
                                       border_color: Color(0xFF222222),
                                     ),
@@ -185,12 +176,13 @@ class Home extends StatelessWidget {
           ],
         ),
         Obx(() => Visibility(
-              visible: showMenu.value || showProfile.value,
+              visible:
+                  mainController.showMenu.value || mainController.showProfile.value,
               child: GestureDetector(
                 onTap: () {
-                  selectedUserId = '';
-                  showMenu.value = false;
-                  showProfile.value = false;
+                  mainController.selectedUserId = '';
+                  mainController.showMenu.value = false;
+                  mainController.showProfile.value = false;
                 },
                 child: Container(
                   color: Color(0xC01D1D1F),
@@ -202,55 +194,39 @@ class Home extends StatelessWidget {
         Obx(() => AnimatedPositioned(
               duration: Duration(milliseconds: 200),
               curve: Curves.easeInOut,
-              bottom:
-                  showMenu.value ? 0.0 : -MediaQuery.of(context).size.height,
+              bottom: mainController.showMenu.value
+                  ? 0.0
+                  : -MediaQuery.of(context).size.height,
               left: 0.0,
               right: 0.0,
-              child: selectedIndex.value == 0
+              child: mainController.selectedIndex.value == 0
                   ? UserGroupPopup(
                       tileContent: [
-                        selectedUserId,
-                        selectedUsername,
-                        selectedUserPic,
-                        selectedChatType
+                        mainController.selectedUserId,
+                        mainController.selectedUsername,
+                        mainController.selectedUserPic,
+                        mainController.selectedChatType
                       ],
                     )
-                  : selectedIndex.value == 2
-                      ? StatusPopup(currentUserData: currentUserDataGlobalMain)
+                  : mainController.selectedIndex.value == 2
+                      ? StatusPopup(currentUserData: mainController.currentUserData)
                       : Container(),
             )),
         Obx(() => AnimatedPositioned(
-              duration: Duration(milliseconds: 200),
+              duration: const Duration(milliseconds: 200),
               curve: Curves.easeInOut,
-              bottom:
-                  showProfile.value ? 0.0 : -MediaQuery.of(context).size.height,
+              bottom: mainController.showProfile.value
+                  ? 0.0
+                  : -MediaQuery.of(context).size.height,
               left: 0.0,
               right: 0.0,
-              child: selectedUserId == ''
+              child: mainController.selectedUserId == ''
                   ? Container()
-                  : ProfilePopup(selectedUser: selectedUserId),
+                  : ProfilePopup(selectedUser: mainController.selectedUserId),
             ))
       ],
     );
   }
-}
-
-void updateCurrentUserDataGlobalMain(newData) {
-  currentUserDataGlobalMain = newData;
-  update.value += 1;
-}
-
-void toggleMenu(dataList) {
-  selectedUserId = dataList[0];
-  selectedUsername = dataList[1];
-  selectedUserPic = dataList[2];
-  selectedChatType = dataList[3];
-  showMenu.value = !showMenu.value;
-}
-
-void toggleProfile(data) {
-  selectedUserId = data;
-  showProfile.value = !showProfile.value;
 }
 
 //future builder code cuz i keep forgetting

@@ -1,17 +1,15 @@
 import 'package:flutter/cupertino.dart';
-import 'package:quarrel/services/firebase_services.dart';
-import 'package:quarrel/widgets/input_field.dart';
 import 'package:flutter/material.dart';
 import 'package:quarrel/main.dart';
 import 'package:get/get.dart';
-
-TextEditingController logInEmailController = TextEditingController();
-TextEditingController logInPassController = TextEditingController();
-var showOverlayLogIn = false.obs;
-var showMessageLogIn = false.obs;
+import 'package:quarrel/widgets/input_field.dart';
+import 'package:quarrel/services/controllers.dart';
+import 'package:quarrel/services/firebase_services.dart';
 
 class Login extends StatelessWidget {
-  const Login({super.key});
+  final LoginController loginController = Get.put(LoginController());
+
+  Login({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -58,7 +56,7 @@ class Login extends StatelessWidget {
                   ),
                   InputField(
                     fieldLabel: 'Email',
-                    controller: logInEmailController,
+                    controller: loginController.logInEmailController,
                     fieldRadius: 2,
                     horizontalMargin: 0,
                     verticalMargin: 2,
@@ -68,7 +66,7 @@ class Login extends StatelessWidget {
                   ),
                   InputField(
                     fieldLabel: 'Password',
-                    controller: logInPassController,
+                    controller: loginController.logInPassController,
                     fieldRadius: 2,
                     horizontalMargin: 0,
                     verticalMargin: 2,
@@ -81,21 +79,22 @@ class Login extends StatelessWidget {
                   ),
                   InkWell(
                     onTap: () async {
-                      showOverlayLogIn.value = true;
-                      var userData = await sendLogIn(
-                          logInEmailController.text.trim(),
-                          logInPassController.text.trim());
+                      loginController.showOverlayLogIn.value = true;
+                      var userData = await loginController.sendLogIn(
+                          loginController.logInEmailController.text.trim(),
+                          loginController.logInPassController.text.trim());
                       if (userData != 0) {
-                        await saveUserOnDevice(logInEmailController.text.trim(),
-                            logInPassController.text.trim());
-                        showOverlayLogIn.value = false;
+                        await saveUserOnDevice(
+                            loginController.logInEmailController.text.trim(),
+                            loginController.logInPassController.text.trim());
+                        loginController.showOverlayLogIn.value = false;
                         userData[0]['id'] = userData[1].user.uid;
                         Get.off(Home(
-                          currentUserData: userData[0],
+                          userData: userData[0],
                         ));
                       } else {
-                        showOverlayLogIn.value = true;
-                        showMessageLogIn.value = true;
+                        loginController.showOverlayLogIn.value = true;
+                        loginController.showMessageLogIn.value = true;
                       }
                     },
                     child: Container(
@@ -113,12 +112,13 @@ class Login extends StatelessWidget {
           ),
         ),
         Obx(() => Visibility(
-              visible: showOverlayLogIn.value || showMessageLogIn.value,
+              visible: loginController.showOverlayLogIn.value ||
+                  loginController.showMessageLogIn.value,
               child: GestureDetector(
-                onTap: showMessageLogIn.value
+                onTap: loginController.showMessageLogIn.value
                     ? () {
-                        showOverlayLogIn.value = false;
-                        showMessageLogIn.value = false;
+                        loginController.showOverlayLogIn.value = false;
+                        loginController.showMessageLogIn.value = false;
                       }
                     : () {},
                 child: Container(
@@ -132,7 +132,7 @@ class Login extends StatelessWidget {
         Obx(() => Material(
               color: Colors.transparent,
               child: Visibility(
-                visible: showMessageLogIn.value,
+                visible: loginController.showMessageLogIn.value,
                 child: Center(
                   child: Container(
                     padding: EdgeInsets.all(20),
@@ -154,8 +154,8 @@ class Login extends StatelessWidget {
                         SizedBox(height: 35),
                         InkWell(
                           onTap: () {
-                            showMessageLogIn.value = false;
-                            showOverlayLogIn.value = false;
+                            loginController.showMessageLogIn.value = false;
+                            loginController.showOverlayLogIn.value = false;
                           },
                           child: Container(
                             height: 50,
@@ -181,21 +181,5 @@ class Login extends StatelessWidget {
             )),
       ],
     );
-  }
-}
-
-sendLogIn(email, pass) async {
-  if (RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$').hasMatch(email) &&
-      RegExp(r'.{8,}').hasMatch(pass)) {
-    print('sending log in');
-    var response = await logInUser(email, pass);
-    if (response?[0] != false) {
-      return response;
-    } else {
-      return 0;
-    }
-  } else {
-    print('login denied');
-    return 0;
   }
 }

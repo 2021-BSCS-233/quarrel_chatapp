@@ -6,23 +6,13 @@ import 'package:quarrel/widgets/message_tile.dart';
 import 'package:quarrel/widgets/popup_menus.dart';
 import 'package:quarrel/widgets/input_field.dart';
 import 'package:quarrel/widgets/status_icons.dart';
+import 'package:quarrel/services/controllers.dart';
 import 'package:quarrel/services/firebase_services.dart';
 
-var chatContent = [];
-var messagesListenerRef;
-var userMap = {};
-var lastSender = '';
-var initial = true;
-var messageSelected = 0;
-var showMenu = false.obs;
-var update = 0.obs;
-var showProfile = false.obs;
-var fieldCheck = false.obs;
-TextEditingController chatController = TextEditingController();
-
 class Chat extends StatelessWidget {
+  final MainController mainController = Get.find<MainController>();
+  final ChatController chatController = Get.put(ChatController());
   final String chatId;
-  final Map currentUserData;
   final List otherUsersData;
   final String chatType;
 
@@ -30,31 +20,32 @@ class Chat extends StatelessWidget {
       {super.key,
       required this.chatId,
       required this.otherUsersData,
-      required this.currentUserData,
       required this.chatType}) {
-    initial = true;
-    userMap[currentUserData['id']] = currentUserData;
+    chatController.initial = true;
+    chatController.userMap[mainController.currentUserData['id']] =
+        mainController.currentUserData;
     for (var user in otherUsersData) {
-      userMap[user['id']] = user;
+      chatController.userMap[user['id']] = user;
     }
   }
 
   void toggleMenu(int index) {
     if (index != -1) {
-      messageSelected = index;
+      chatController.messageSelected = index;
     }
-    showMenu.value = true;
+    chatController.showMenu.value = true;
   }
 
   void toggleProfile(int index) {
     if (index != -1) {
-      messageSelected = index;
+      chatController.messageSelected = index;
     }
-    showProfile.value = !showProfile.value;
+    chatController.showProfile.value = !chatController.showProfile.value;
   }
 
   void changing() {
-    fieldCheck.value = (chatController.text != '' ? true : false);
+    chatController.fieldCheck.value =
+        (chatController.chatFieldController.text != '' ? true : false);
   }
 
   @override
@@ -139,7 +130,7 @@ class Chat extends StatelessWidget {
                       width: 40,
                       child: TextButton(
                         onPressed: () {
-                          print(fieldCheck.value);
+                          print(chatController.fieldCheck.value);
                         },
                         child: Icon(
                           Icons.add,
@@ -157,7 +148,7 @@ class Chat extends StatelessWidget {
                         fieldRadius: 20,
                         fieldLabel:
                             'Message @${otherUsersData[0]['display_name']}',
-                        controller: chatController,
+                        controller: chatController.chatFieldController,
                         suffixIcon: Icons.all_inclusive,
                         fieldColor: Color(0xFF151515),
                         onChange: changing,
@@ -165,7 +156,7 @@ class Chat extends StatelessWidget {
                       ),
                     ),
                     Obx(() => Visibility(
-                          visible: fieldCheck.value,
+                          visible: chatController.fieldCheck.value,
                           child: Container(
                             decoration: BoxDecoration(
                                 shape: BoxShape.circle,
@@ -178,10 +169,12 @@ class Chat extends StatelessWidget {
                                 size: 25,
                               ),
                               onPressed: () {
-                                fieldCheck.value = false;
-                                sendMessage(chatId, chatController.text,
-                                    currentUserData['id']);
-                                chatController.clear();
+                                chatController.fieldCheck.value = false;
+                                sendMessage(
+                                    chatId,
+                                    chatController.chatFieldController.text,
+                                    mainController.currentUserData['id']);
+                                chatController.chatFieldController.clear();
                               },
                               style: ButtonStyle(
                                 padding: MaterialStateProperty.all<EdgeInsets>(
@@ -198,11 +191,12 @@ class Chat extends StatelessWidget {
           ),
         ),
         Obx(() => Visibility(
-              visible: showMenu.value || showProfile.value,
+              visible: chatController.showMenu.value ||
+                  chatController.showProfile.value,
               child: GestureDetector(
                 onTap: () {
-                  showMenu.value = false;
-                  showProfile.value = false;
+                  chatController.showMenu.value = false;
+                  chatController.showProfile.value = false;
                 },
                 child: Container(
                   color: Color(0xCA1D1D1F),
@@ -214,28 +208,32 @@ class Chat extends StatelessWidget {
         Obx(() => AnimatedPositioned(
               duration: Duration(milliseconds: 200),
               curve: Curves.easeInOut,
-              bottom:
-                  showMenu.value ? 0.0 : -MediaQuery.of(context).size.height,
+              bottom: chatController.showMenu.value
+                  ? 0.0
+                  : -MediaQuery.of(context).size.height,
               left: 0.0,
               right: 0.0,
-              child: chatContent.length > 1
+              child: chatController.chatContent.length > 1
                   ? MessagePopup(
-                      messageSelected: chatContent[messageSelected],
+                      messageSelected: chatController
+                          .chatContent[chatController.messageSelected],
                       chatId: chatId,
-                      currentUserData: currentUserData,
                     )
                   : Container(),
             )),
         Obx(() => AnimatedPositioned(
               duration: Duration(milliseconds: 200),
               curve: Curves.easeInOut,
-              bottom:
-                  showProfile.value ? 0.0 : -MediaQuery.of(context).size.height,
+              bottom: chatController.showProfile.value
+                  ? 0.0
+                  : -MediaQuery.of(context).size.height,
               left: 0.0,
               right: 0.0,
-              child: chatContent.isNotEmpty
+              child: chatController.chatContent.isNotEmpty
                   ? ProfilePopup(
-                      selectedUser: chatContent[messageSelected]['sender_id'])
+                      selectedUser: chatController
+                              .chatContent[chatController.messageSelected]
+                          ['sender_id'])
                   : Container(),
             )),
       ],
@@ -243,22 +241,24 @@ class Chat extends StatelessWidget {
   }
 
   Future<Widget> messagesUI() async {
-    initial ? await getMessages(chatId) : null;
+    chatController.initial ? await chatController.getMessages(chatId) : null;
     return Obx(
-      () => update.value == update.value && chatContent.length < 1
+      () => chatController.updateC.value == chatController.updateC.value &&
+              chatController.chatContent.length < 1
           ? Center(child: Text('No Chats Found, Start Chatting'))
           : Expanded(
               child: ListView.builder(
-                itemCount: chatContent.length,
+                itemCount: chatController.chatContent.length,
                 shrinkWrap: true,
                 reverse: true,
                 itemBuilder: (context, index) {
                   try {
-                    if (chatContent[index]['sender_id'] !=
-                        chatContent[index + 1]['sender_id']) {
+                    if (chatController.chatContent[index]['sender_id'] !=
+                        chatController.chatContent[index + 1]['sender_id']) {
                       return MessageTileFull(
-                        messageData: chatContent[index],
-                        sendingUser: userMap[chatContent[index]['sender_id']],
+                        messageData: chatController.chatContent[index],
+                        sendingUser: chatController.userMap[
+                            chatController.chatContent[index]['sender_id']],
                         toggleMenu: () {
                           toggleMenu(index);
                         },
@@ -269,9 +269,12 @@ class Chat extends StatelessWidget {
                     } else {
                       bool select = true;
                       try {
-                        var time1 = chatContent[index]['time_stamp'].toDate();
-                        var time2 =
-                            chatContent[index + 1]['time_stamp'].toDate();
+                        var time1 = chatController.chatContent[index]
+                                ['time_stamp']
+                            .toDate();
+                        var time2 = chatController.chatContent[index + 1]
+                                ['time_stamp']
+                            .toDate();
                         var difference = time1.difference(time2);
                         if (difference.inMinutes < 15) {
                           select = true;
@@ -283,16 +286,17 @@ class Chat extends StatelessWidget {
                       }
                       if (select) {
                         return MessageTileCompact(
-                            messageData: chatContent[index],
-                            sendingUser:
-                                userMap[chatContent[index]['sender_id']],
+                            messageData: chatController.chatContent[index],
+                            sendingUser: chatController.userMap[
+                                chatController.chatContent[index]['sender_id']],
                             toggleMenu: () {
                               toggleMenu(index);
                             });
                       } else {
                         return MessageTileFull(
-                          messageData: chatContent[index],
-                          sendingUser: userMap[chatContent[index]['sender_id']],
+                          messageData: chatController.chatContent[index],
+                          sendingUser: chatController.userMap[
+                              chatController.chatContent[index]['sender_id']],
                           toggleMenu: () {
                             toggleMenu(index);
                           },
@@ -304,8 +308,9 @@ class Chat extends StatelessWidget {
                     }
                   } catch (e) {
                     return MessageTileFull(
-                      messageData: chatContent[index],
-                      sendingUser: userMap[chatContent[index]['sender_id']],
+                      messageData: chatController.chatContent[index],
+                      sendingUser: chatController.userMap[
+                          chatController.chatContent[index]['sender_id']],
                       toggleMenu: () {
                         toggleMenu(index);
                       },
@@ -319,23 +324,4 @@ class Chat extends StatelessWidget {
             ),
     );
   }
-}
-
-getMessages(chatId) async {
-  messagesListenerRef = await messagesListener(chatId);
-  chatContent = await getInitialMessages(chatId);
-  initial = false;
-}
-
-updateMessages(updateData, updateType) {
-  var index = chatContent.indexWhere((map) => map['id'] == updateData['id']);
-  if (updateType == 'added' && index < 0) {
-    chatContent.insert(0, updateData);
-  } else if (updateType == 'modified') {
-    chatContent[index]['message'] = updateData['message'];
-    chatContent[index]['edited'] = true;
-  } else if (updateType == 'removed') {
-    chatContent.removeAt(index);
-  }
-  update.value += 1;
 }

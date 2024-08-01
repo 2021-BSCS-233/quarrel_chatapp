@@ -4,28 +4,15 @@ import 'package:get/get.dart';
 import 'package:quarrel/pages/requests_page.dart';
 import 'package:quarrel/widgets/dm_chat_tile.dart';
 import 'package:quarrel/widgets/status_icons.dart';
-import 'package:quarrel/services/firebase_services.dart';
-
-var update = 0.obs;
-bool initial = true;
-var chatsListenerRef;
-var friendsListenerRef;
-List chatsData = [];
-List friendsData = [];
-var currentUserDataGlobalChats;
+import 'package:quarrel/services/controllers.dart';
 
 class Chats extends StatelessWidget {
-  final Map currentUserData;
-  final Function toggleMenu;
-  final Function toggleProfile;
+  final MainController mainController = Get.find<MainController>();
+  final ChatsController chatsController = Get.put(ChatsController());
+  final FriendsController friendsController = Get.put(FriendsController());
 
-  Chats(
-      {super.key,
-      required this.toggleMenu,
-      required this.currentUserData,
-      required this.toggleProfile}) {
-    currentUserDataGlobalChats = currentUserData;
-    initial = true;
+  Chats({super.key}) {
+    chatsController.initial = true;
   }
 
   @override
@@ -43,9 +30,7 @@ class Chats extends StatelessWidget {
           InkWell(
             enableFeedback: true,
             onTap: () {
-              Get.to(Requests(
-                currentUserData: currentUserData,
-              ));
+              Get.to(Requests());
             },
             child: SizedBox(
               height: 40,
@@ -93,7 +78,10 @@ class Chats extends StatelessWidget {
   }
 
   Future<Widget> chatsUI() async {
-    initial ? await getInitialData(currentUserData['id']) : null;
+    chatsController.initial
+        ? await chatsController
+            .getInitialData(mainController.currentUserData['id'])
+        : null;
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 10),
       child: Column(
@@ -101,11 +89,15 @@ class Chats extends StatelessWidget {
           Obx(
             () => SizedBox(
                 width: double.infinity,
-                height: friendsData.isEmpty ? 0 : 90,
-                child: update.value == update.value && friendsData.isEmpty
+                height: friendsController.friendsData.isEmpty ? 0 : 90,
+                child: friendsController.updateF.value ==
+                            friendsController.updateF.value &&
+                        friendsController.friendsData.isEmpty
                     ? const SizedBox()
                     : ListView.builder(
-                        itemCount: friendsData.length,
+                        itemCount: friendsController.friendsData.length < 20
+                            ? friendsController.friendsData.length
+                            : 20,
                         shrinkWrap: true,
                         scrollDirection: Axis.horizontal,
                         itemBuilder: (context, index) {
@@ -120,7 +112,8 @@ class Chats extends StatelessWidget {
                             child: Center(
                               child: InkWell(
                                 onTap: () {
-                                  toggleProfile(friendsData[index]['id']);
+                                  mainController.toggleProfile(friendsController
+                                      .friendsData[index]['id']);
                                 },
                                 child: Stack(
                                   children: [
@@ -128,11 +121,13 @@ class Chats extends StatelessWidget {
                                       height: 50,
                                       width: 50,
                                       child: CircleAvatar(
-                                        backgroundImage: friendsData[index]
+                                        backgroundImage: friendsController
+                                                        .friendsData[index]
                                                     ['profile_picture'] !=
                                                 ''
                                             ? CachedNetworkImageProvider(
-                                                friendsData[index]
+                                                friendsController
+                                                        .friendsData[index]
                                                     ['profile_picture'])
                                             : const AssetImage(
                                                     'assets/images/default.png')
@@ -144,12 +139,15 @@ class Chats extends StatelessWidget {
                                       bottom: -2,
                                       right: -2,
                                       child: StatusIcon(
-                                        icon_type: friendsData[index]
+                                        icon_type: friendsController
+                                                        .friendsData[index]
                                                     ['status'] ==
                                                 'Online'
-                                            ? friendsData[index]
+                                            ? friendsController
+                                                    .friendsData[index]
                                                 ['display_status']
-                                            : friendsData[index]['status'],
+                                            : friendsController
+                                                .friendsData[index]['status'],
                                         icon_size: 17,
                                         icon_border: 3.5,
                                       ),
@@ -163,7 +161,9 @@ class Chats extends StatelessWidget {
           ),
           Obx(
             () => Expanded(
-                child: update.value == update.value && chatsData.isEmpty
+                child: chatsController.updateCs.value ==
+                            chatsController.updateCs.value &&
+                        chatsController.chatsData.isEmpty
                     ? Center(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -177,20 +177,20 @@ class Chats extends StatelessWidget {
                         ),
                       )
                     : ListView.builder(
-                        itemCount: chatsData.length,
+                        itemCount: chatsController.chatsData.length,
                         shrinkWrap: true,
                         itemBuilder: (context, index) {
-                          return chatsData[index]['chat_type'] == 'dm'
+                          return chatsController.chatsData[index]
+                                      ['chat_type'] ==
+                                  'dm'
                               ? DmChatTile(
-                                  currentUserData: currentUserData,
-                                  chatData: chatsData[index],
-                                  logPressMenu: toggleMenu)
+                                  chatData: chatsController.chatsData[index])
                               : Container(
                                   height: 50,
                                   width: 100,
                                   child: Center(
                                     child: Text(
-                                        'add support for ${chatsData[index]['chat_type']}'),
+                                        'add support for ${chatsController.chatsData[index]['chat_type']}'),
                                   ),
                                 );
                         },
@@ -200,37 +200,4 @@ class Chats extends StatelessWidget {
       ),
     );
   }
-}
-
-getInitialData(currentUserId) async {
-  chatsListenerRef = await chatsListener(currentUserId);
-  friendsListenerRef = await friendsListener(currentUserId);
-  var response = await getInitialChats(currentUserId);
-  chatsData = response;
-  response = await getInitialFriends(currentUserId);
-  friendsData = response;
-  initial = false;
-}
-
-updateChats(updateData, updateType) {
-  var index = chatsData.indexWhere((map) => map['id'] == updateData['id']);
-  if (updateType == 'modified') {
-    chatsData[index]['latest_message'] = updateData['latest_message'];
-    chatsData[index]['time_stamp'] = updateData['time_stamp'];
-  } else if (updateType == 'added' && index < 0) {
-    chatsData.insert(0, updateData);
-  }
-  update.value += 1;
-}
-
-updateFriendTiles(updateData, updateType) {
-  var index = friendsData.indexWhere((map) => map['id'] == updateData['id']);
-  if (updateType == 'modified') {
-    friendsData[index] = updateData;
-  } else if (updateType == 'added' && index < 0) {
-    friendsData.insert(0, updateData);
-  } else if (updateType == 'removed') {
-    friendsData.removeAt(index);
-  }
-  update.value += 1;
 }

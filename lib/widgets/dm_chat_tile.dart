@@ -1,19 +1,17 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:quarrel/services/controllers.dart';
 import 'package:quarrel/widgets/status_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:quarrel/pages/chat_page.dart';
 
 class DmChatTile extends StatelessWidget {
-  final Map currentUserData;
+  final MainController mainController = Get.find<MainController>();
   final Map chatData;
-  final Function logPressMenu;
 
   DmChatTile(
       {super.key,
-      required this.logPressMenu,
-      required this.chatData,
-      required this.currentUserData});
+      required this.chatData});
 
   @override
   Widget build(BuildContext context) {
@@ -21,9 +19,10 @@ class DmChatTile extends StatelessWidget {
     var time2 = DateTime.now();
     var difference = time2.difference(time1);
     String timeDifference = '';
-    if (difference.inMinutes < 1) {
-      timeDifference = '<1m';
-    } else if (difference.inHours < 1) {
+    // if (difference.inMinutes < 1) {
+    //   timeDifference = '<1m';
+    // } else
+    if (difference.inHours < 1) {
       timeDifference = '${difference.inMinutes}m';
     } else if (difference.inDays < 1) {
       timeDifference = '${difference.inHours}h';
@@ -42,13 +41,12 @@ class DmChatTile extends StatelessWidget {
           Get.to(Chat(
             chatId: chatData['id'],
             otherUsersData: [chatData['receiver_data']],
-            currentUserData: currentUserData,
             chatType: chatData['chat_type'],
           ));
         },
         onLongPress: () {
           print('Long Press');
-          logPressMenu([
+          mainController.toggleMenu([
             chatData['id'],
             chatData['receiver_data']['username'] == null
                 ? ''

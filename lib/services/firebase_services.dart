@@ -2,12 +2,14 @@ import 'dart:io';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:get/get.dart';
 import 'package:quarrel/main.dart';
 import 'package:quarrel/pages/chats_page.dart';
 import 'package:quarrel/pages/chat_page.dart';
 import 'package:quarrel/pages/friends_page.dart';
 import 'package:quarrel/pages/profile_page.dart';
 import 'package:quarrel/pages/requests_page.dart';
+import 'package:quarrel/services/controllers.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 final CollectionReference users =
@@ -108,6 +110,7 @@ autoLogin() async {
 }
 
 profileListener(currentUserId) {
+  MainController mainController = Get.find<MainController>();
   FirebaseFirestore.instance
       .collection('users')
       .doc(currentUserId)
@@ -115,10 +118,7 @@ profileListener(currentUserId) {
       .listen((event) {
     var userData = event.data();
     userData?['id'] = event.id;
-    updateCurrentUserDataGlobalMain(userData);
-    currentUserDataGlobalChats = userData;
-    currentUserDataGlobalFriends = userData;
-    updateCurrentUserDataGlobalProfile(userData);
+    mainController.updateCurrentUserData(userData);
   });
 }
 
@@ -171,6 +171,7 @@ getInitialFriends(currentUserId) async {
 }
 
 friendsListener(currentUserId) async {
+  FriendsController friendsController = Get.find<FriendsController>();
   return FirebaseFirestore.instance
       .collection('users')
       .orderBy('display_name')
@@ -182,14 +183,11 @@ friendsListener(currentUserId) async {
       var updateData = change.doc.data();
       updateData?['id'] = change.doc.id;
       if (change.type == DocumentChangeType.modified) {
-        updateFriendTiles(updateData, 'modified');
-        updateFriendList(updateData, 'modified');
+        friendsController.updateFriends(updateData, 'modified');
       } else if (change.type == DocumentChangeType.added) {
-        updateFriendTiles(updateData, 'added');
-        updateFriendList(updateData, 'added');
+        friendsController.updateFriends(updateData, 'added');
       } else if (change.type == DocumentChangeType.removed) {
-        updateFriendTiles(updateData, 'removed');
-        updateFriendList(updateData, 'removed');
+        friendsController.updateFriends(updateData, 'removed');
       }
     }
   });
@@ -247,6 +245,7 @@ getInitialRequest(currentUserId) async {
 }
 
 requestsListeners(currentUserId) {
+  RequestsController requestsController = Get.find<RequestsController>();
   FirebaseFirestore.instance
       .collection('requests')
       .orderBy('time_stamp', descending: true)
@@ -264,9 +263,9 @@ requestsListeners(currentUserId) {
           temp['id'] = user.id;
           requestData?['user'] = temp;
         }
-        updateIncomingRequests(requestData, 'added');
+        requestsController.updateIncomingRequests(requestData, 'added');
       } else if (change.type == DocumentChangeType.removed) {
-        updateIncomingRequests(requestData, 'removed');
+        requestsController.updateIncomingRequests(requestData, 'removed');
       }
     }
   });
@@ -287,9 +286,9 @@ requestsListeners(currentUserId) {
           temp['id'] = user.id;
           requestData?['user'] = temp;
         }
-        updateOutgoingRequests(requestData, 'added');
+        requestsController.updateOutgoingRequests(requestData, 'added');
       } else if (change.type == DocumentChangeType.removed) {
-        updateOutgoingRequests(requestData, 'removed');
+        requestsController.updateOutgoingRequests(requestData, 'removed');
       }
     }
   });
@@ -368,7 +367,7 @@ getInitialChats(currentUserId) async {
   return chats;
 }
 
-chatsListener(currentUserId) async {
+chatsListener(currentUserId, updateChats) async {
   return FirebaseFirestore.instance
       .collection('chats')
       .orderBy('time_stamp', descending: true)
@@ -414,6 +413,7 @@ getInitialMessages(chatId) async {
 }
 
 messagesListener(chatId) async {
+  ChatController chatController = Get.find<ChatController>();
   FirebaseFirestore.instance
       .collection('chats')
       .doc(chatId)
@@ -426,11 +426,11 @@ messagesListener(chatId) async {
       var updateData = change.doc.data();
       updateData?['id'] = change.doc.id;
       if (change.type == DocumentChangeType.added) {
-        updateMessages(updateData, 'added');
+        chatController.updateMessages(updateData, 'added');
       } else if (change.type == DocumentChangeType.modified) {
-        updateMessages(updateData, 'modified');
+        chatController.updateMessages(updateData, 'modified');
       } else if (change.type == DocumentChangeType.removed) {
-        updateMessages(updateData, 'removed');
+        chatController.updateMessages(updateData, 'removed');
       }
     }
   });

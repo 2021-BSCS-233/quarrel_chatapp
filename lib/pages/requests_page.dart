@@ -2,25 +2,17 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:quarrel/services/controllers.dart';
 import 'package:quarrel/widgets/input_field.dart';
 import 'package:quarrel/services/firebase_services.dart';
 
-var updateI = 0.obs;
-var updateO = 0.obs;
-var initial = true;
-List incomingRequestsData = [];
-List outgoingRequestsData = [];
-var fieldCheck = false.obs;
-TextEditingController requestController = TextEditingController();
 
-void changing() {
-  fieldCheck.value = (requestController.text != '' ? true : false);
-}
 
 class Requests extends StatelessWidget {
-  final Map currentUserData;
+  final MainController mainController = Get.find<MainController>();
+  final RequestsController requestsController = Get.put(RequestsController());
 
-  Requests({required this.currentUserData});
+  Requests({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -71,18 +63,18 @@ class Requests extends StatelessWidget {
   }
 
   Future<Widget> requestsData() async {
-    initial ? await getInitialData(currentUserData['id']) : null;
+    requestsController.initial ? await requestsController.getInitialData(mainController.currentUserData['id']) : null;
     return TabBarView(
       children: [
         Container(
           padding: EdgeInsets.only(left: 10),
-          child: Obx(() => updateI.value == updateI.value &&
-                  incomingRequestsData.isEmpty
+          child: Obx(() => requestsController.updateI.value == requestsController.updateI.value &&
+              requestsController.incomingRequestsData.isEmpty
               ? Center(
                   child: Text('You don\'t have incoming requests'),
                 )
               : ListView.builder(
-                  itemCount: incomingRequestsData.length,
+                  itemCount: requestsController.incomingRequestsData.length,
                   itemBuilder: (context, index) {
                     return Container(
                       margin: const EdgeInsets.only(top: 15),
@@ -93,11 +85,11 @@ class Requests extends StatelessWidget {
                       child: ListTile(
                         dense: true,
                         leading: CircleAvatar(
-                          backgroundImage: incomingRequestsData[index]['user']
+                          backgroundImage: requestsController.incomingRequestsData[index]['user']
                                       ['profile_picture'] !=
                                   ''
                               ? CachedNetworkImageProvider(
-                                  incomingRequestsData[index]['user']
+                              requestsController.incomingRequestsData[index]['user']
                                       ['profile_picture'])
                               : const AssetImage('assets/images/default.png')
                                   as ImageProvider,
@@ -105,12 +97,12 @@ class Requests extends StatelessWidget {
                           backgroundColor: Color(0x20F2F2F2),
                         ),
                         title: Text(
-                          incomingRequestsData[index]['user']['display_name'],
+                          requestsController.incomingRequestsData[index]['user']['display_name'],
                           style: const TextStyle(
                               fontWeight: FontWeight.bold, fontSize: 16),
                         ),
                         subtitle: Text(
-                            incomingRequestsData[index]['user']['username']),
+                            requestsController.incomingRequestsData[index]['user']['username']),
                         trailing: Container(
                           width: 100,
                           child: Row(
@@ -120,10 +112,13 @@ class Requests extends StatelessWidget {
                                 child: const SizedBox(
                                     width: 35,
                                     height: 40,
-                                    child: Icon(Icons.check, color: Colors.green,)),
+                                    child: Icon(
+                                      Icons.check,
+                                      color: Colors.green,
+                                    )),
                                 onTap: () async {
                                   await requestAction(
-                                      incomingRequestsData[index]['id'],
+                                      requestsController.incomingRequestsData[index]['id'],
                                       'accept');
                                 },
                               ),
@@ -134,10 +129,13 @@ class Requests extends StatelessWidget {
                                 child: Container(
                                     width: 35,
                                     height: 40,
-                                    child: Icon(Icons.close, color: Colors.red,)),
+                                    child: Icon(
+                                      Icons.close,
+                                      color: Colors.red,
+                                    )),
                                 onTap: () {
                                   requestAction(
-                                      incomingRequestsData[index]['id'],
+                                      requestsController.incomingRequestsData[index]['id'],
                                       'deny');
                                 },
                               )
@@ -157,14 +155,14 @@ class Requests extends StatelessWidget {
                   Expanded(
                     child: InputField(
                       fieldLabel: 'Add Friend',
-                      controller: requestController,
+                      controller: requestsController.requestsFieldController,
                       prefixIcon: CupertinoIcons.person_add,
-                      onChange: changing,
+                      onChange: requestsController.changing,
                       contentTopPadding: 10,
                     ),
                   ),
                   Obx(() => Visibility(
-                        visible: fieldCheck.value,
+                        visible: requestsController.fieldCheck.value,
                         child: Container(
                           decoration: BoxDecoration(
                               shape: BoxShape.circle,
@@ -173,10 +171,10 @@ class Requests extends StatelessWidget {
                           height: 40,
                           child: TextButton(
                             onPressed: () {
-                              fieldCheck.value = false;
-                              sendRequest(currentUserData['id'],
-                                  requestController.text.trim());
-                              requestController.text = '';
+                              requestsController.fieldCheck.value = false;
+                              sendRequest(mainController.currentUserData['id'],
+                                  requestsController.requestsFieldController.text.trim());
+                              requestsController.requestsFieldController.text = '';
                             },
                             style: ButtonStyle(
                               padding: MaterialStateProperty.all<EdgeInsets>(
@@ -193,13 +191,13 @@ class Requests extends StatelessWidget {
                 ],
               ),
               Obx(() => Expanded(
-                    child: updateO.value == updateO.value &&
-                            outgoingRequestsData.isEmpty
+                    child: requestsController.updateO.value == requestsController.updateO.value &&
+                        requestsController.outgoingRequestsData.isEmpty
                         ? Center(
                             child: Text('You haven\'t sent any requests'),
                           )
                         : ListView.builder(
-                            itemCount: outgoingRequestsData.length,
+                            itemCount: requestsController.outgoingRequestsData.length,
                             shrinkWrap: true,
                             itemBuilder: (context, index) {
                               return Container(
@@ -212,11 +210,11 @@ class Requests extends StatelessWidget {
                                 child: ListTile(
                                   dense: true,
                                   leading: CircleAvatar(
-                                    backgroundImage: outgoingRequestsData[index]
+                                    backgroundImage: requestsController.outgoingRequestsData[index]
                                                 ['user']['profile_picture'] !=
                                             ''
                                         ? CachedNetworkImageProvider(
-                                            outgoingRequestsData[index]['user']
+                                        requestsController.outgoingRequestsData[index]['user']
                                                 ['profile_picture'])
                                         : const AssetImage(
                                                 'assets/images/default.png')
@@ -225,22 +223,25 @@ class Requests extends StatelessWidget {
                                     backgroundColor: Color(0x20F2F2F2),
                                   ),
                                   title: Text(
-                                    outgoingRequestsData[index]['user']
+                                    requestsController.outgoingRequestsData[index]['user']
                                         ['display_name'],
                                     style: TextStyle(
                                         fontWeight: FontWeight.bold,
                                         fontSize: 16),
                                   ),
-                                  subtitle: Text(outgoingRequestsData[index]
+                                  subtitle: Text(requestsController.outgoingRequestsData[index]
                                       ['user']['username']),
                                   trailing: InkWell(
                                     child: Container(
                                         width: 40,
                                         height: 40,
-                                        child: Icon(Icons.close, color: Colors.red,)),
+                                        child: Icon(
+                                          Icons.close,
+                                          color: Colors.red,
+                                        )),
                                     onTap: () {
                                       requestAction(
-                                          outgoingRequestsData[index]['id'],
+                                          requestsController.outgoingRequestsData[index]['id'],
                                           'deny');
                                     },
                                   ),
@@ -254,34 +255,4 @@ class Requests extends StatelessWidget {
       ],
     );
   }
-}
-
-getInitialData(currentUserId) async {
-  requestsListeners(currentUserId);
-  var result = await getInitialRequest(currentUserId);
-  incomingRequestsData = result[0];
-  outgoingRequestsData = result[1];
-  initial = false;
-}
-
-updateIncomingRequests(updateData, updateType) {
-  var index =
-      incomingRequestsData.indexWhere((map) => map['id'] == updateData['id']);
-  if(updateType == 'added' && index < 0){
-    incomingRequestsData.insert(0, updateData);
-  } else if(updateType == 'removed'){
-    incomingRequestsData.removeAt(index);
-  }
-  updateI.value += 1;
-}
-
-updateOutgoingRequests(updateData, updateType) {
-  var index =
-      outgoingRequestsData.indexWhere((map) => map['id'] == updateData['id']);
-  if(updateType == 'added' && index < 0){
-    outgoingRequestsData.insert(0, updateData);
-  } else if(updateType == 'removed'){
-    outgoingRequestsData.removeAt(index);
-  }
-  updateO.value += 1;
 }

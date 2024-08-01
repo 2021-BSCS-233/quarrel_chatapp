@@ -4,21 +4,15 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:quarrel/pages/chat_page.dart';
 import 'package:quarrel/pages/requests_page.dart';
+import 'package:quarrel/services/controllers.dart';
 import 'package:quarrel/services/firebase_services.dart';
 
-bool initial = true;
-var update = 0.obs;
-List friendsData = [];
-var currentUserDataGlobalFriends;
-
 class Friends extends StatelessWidget {
-  final Map currentUserData;
-  final Function toggleProfile;
+  final MainController mainController = Get.find<MainController>();
+  final FriendsController friendsController = Get.find<FriendsController>();
 
-  Friends(
-      {super.key, required this.currentUserData, required this.toggleProfile}) {
-    initial = true;
-    currentUserDataGlobalFriends = currentUserData;
+  Friends({super.key}) {
+    friendsController.initial = true;
   }
 
   @override
@@ -35,9 +29,7 @@ class Friends extends StatelessWidget {
         actions: [
           InkWell(
             onTap: () {
-              Get.to(Requests(
-                currentUserData: currentUserData,
-              ));
+              Get.to(Requests());
             },
             child: Container(
               height: 40,
@@ -88,9 +80,14 @@ class Friends extends StatelessWidget {
   }
 
   Future<Widget> friendsUI() async {
-    initial ? await getInitialData(currentUserData['id']) : null;
+    friendsController.initial
+        ? await friendsController
+            .getInitialData(mainController.currentUserData['id'])
+        : null;
 
-    return Obx(() => update.value == update.value && friendsData.isEmpty
+    return Obx(() => friendsController.updateF.value ==
+                friendsController.updateF.value &&
+            friendsController.friendsData.isEmpty
         ? Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -103,7 +100,7 @@ class Friends extends StatelessWidget {
         : Container(
             padding: EdgeInsets.only(left: 10),
             child: ListView.builder(
-                itemCount: friendsData.length,
+                itemCount: friendsController.friendsData.length,
                 shrinkWrap: true,
                 itemBuilder: (context, index) {
                   return Container(
@@ -115,14 +112,15 @@ class Friends extends StatelessWidget {
                     child: ListTile(
                       leading: InkWell(
                         onTap: () {
-                          toggleProfile(friendsData[index]['id']);
+                          mainController.toggleProfile(
+                              friendsController.friendsData[index]['id']);
                         },
                         child: CircleAvatar(
-                          backgroundImage: friendsData[index]
+                          backgroundImage: friendsController.friendsData[index]
                                       ['profile_picture'] !=
                                   ''
-                              ? CachedNetworkImageProvider(
-                                  friendsData[index]['profile_picture'])
+                              ? CachedNetworkImageProvider(friendsController
+                                  .friendsData[index]['profile_picture'])
                               : const AssetImage('assets/images/default.png')
                                   as ImageProvider,
                           radius: 20,
@@ -130,7 +128,7 @@ class Friends extends StatelessWidget {
                         ),
                       ),
                       title: Text(
-                        friendsData[index]['display_name'],
+                        friendsController.friendsData[index]['display_name'],
                         style: TextStyle(fontWeight: FontWeight.bold),
                       ),
                       trailing: Container(
@@ -159,8 +157,9 @@ class Friends extends StatelessWidget {
                                 color: Colors.red,
                               ),
                               onTap: () {
-                                removeFriend(currentUserData['id'],
-                                    friendsData[index]['id']);
+                                removeFriend(
+                                    mainController.currentUserData['id'],
+                                    friendsController.friendsData[index]['id']);
                               },
                             )
                           ],
@@ -171,21 +170,4 @@ class Friends extends StatelessWidget {
                 }),
           ));
   }
-}
-
-getInitialData(currentUserId) async {
-  friendsData = await getInitialFriends(currentUserId);
-  initial = false;
-}
-
-updateFriendList(updateData, updateType) {
-  var index = friendsData.indexWhere((map) => map['id'] == updateData['id']);
-  if (updateType == 'modified') {
-    friendsData[index] = updateData;
-  } else if (updateType == 'added' && index < 0) {
-    friendsData.insert(0, updateData);
-  } else if (updateType == 'removed') {
-    friendsData.removeAt(index);
-  }
-  update.value += 1;
 }

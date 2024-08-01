@@ -1,30 +1,28 @@
 import 'dart:io';
-
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:quarrel/services/controllers.dart';
 import 'package:quarrel/widgets/status_icons.dart';
 import 'package:quarrel/services/firebase_services.dart';
 
-TextEditingController displayController = TextEditingController();
-TextEditingController pronounceController = TextEditingController();
-TextEditingController aboutMeController = TextEditingController();
-var image;
-var update = 0.obs;
-
 // var _selectedColor = Color(0xFFFFC42C).obs;
 class EditProfile extends StatelessWidget {
-  final Map currentUserData;
+  final MainController mainController = Get.find<MainController>();
+  final EditProfileController editProfileController =
+      Get.put(EditProfileController());
 
   EditProfile({
     super.key,
-    required this.currentUserData,
   }) {
-    displayController.text = currentUserData['display_name'];
-    pronounceController.text = currentUserData['pronounce'];
-    aboutMeController.text = currentUserData['about_me'];
-    image = null;
+    editProfileController.displayController.text =
+        mainController.currentUserData['display_name'];
+    editProfileController.pronounceController.text =
+        mainController.currentUserData['pronounce'];
+    editProfileController.aboutMeController.text =
+        mainController.currentUserData['about_me'];
+    editProfileController.image = null;
   }
 
   @override
@@ -41,17 +39,17 @@ class EditProfile extends StatelessWidget {
           InkWell(
             onTap: () async {
               await updateProfile(
-                  currentUserData['id'],
-                  displayController.text.trim() != ''
-                      ? displayController.text.trim()
-                      : currentUserData['display_name'],
-                  pronounceController.text.trim() != ''
-                      ? pronounceController.text.trim()
-                      : currentUserData['pronounce'],
-                  aboutMeController.text.trim() != ''
-                      ? aboutMeController.text.trim()
-                      : currentUserData['about_me'],
-                  image);
+                  mainController.currentUserData['id'],
+                  editProfileController.displayController.text.trim() != ''
+                      ? editProfileController.displayController.text.trim()
+                      : mainController.currentUserData['display_name'],
+                  editProfileController.pronounceController.text.trim() != ''
+                      ? editProfileController.pronounceController.text.trim()
+                      : mainController.currentUserData['pronounce'],
+                  editProfileController.aboutMeController.text.trim() != ''
+                      ? editProfileController.aboutMeController.text.trim()
+                      : mainController.currentUserData['about_me'],
+                  editProfileController.image);
               Get.back();
             },
             child: Container(
@@ -81,7 +79,7 @@ class EditProfile extends StatelessWidget {
                       width: double.infinity,
                       height: 150,
                       color: Colors.yellow
-                          .shade700, //make it adapt to the major color of profile // #ffc42c
+                          .shade700,
                     ),
                     Container(
                       width: double.infinity,
@@ -95,9 +93,9 @@ class EditProfile extends StatelessWidget {
                   left: 20,
                   child: InkWell(
                     onTap: () async {
-                      image = await ImagePicker()
+                      editProfileController.image = await ImagePicker()
                           .pickImage(source: ImageSource.gallery);
-                      update.value += 1;
+                      editProfileController.updateP.value += 1;
                     },
                     child: Stack(
                       children: [
@@ -110,11 +108,19 @@ class EditProfile extends StatelessWidget {
                               border: Border.all(
                                   width: 6, color: Color(0xFF121218))),
                           child: Obx(() => CircleAvatar(
-                                backgroundImage: update.value == update.value && image != null
-                                    ? FileImage(File(image.path))
-                                    : currentUserData['profile_picture'] != ''
+                                backgroundImage: editProfileController
+                                                .updateP.value ==
+                                            editProfileController
+                                                .updateP.value &&
+                                        editProfileController.image != null
+                                    ? FileImage(
+                                        File(editProfileController.image.path))
+                                    : mainController.currentUserData[
+                                                'profile_picture'] !=
+                                            ''
                                         ? CachedNetworkImageProvider(
-                                            currentUserData['profile_picture'])
+                                            mainController.currentUserData[
+                                                'profile_picture'])
                                         : const AssetImage(
                                                 'assets/images/default.png')
                                             as ImageProvider,
@@ -126,7 +132,8 @@ class EditProfile extends StatelessWidget {
                           bottom: 3,
                           right: 3,
                           child: StatusIcon(
-                            icon_type: currentUserData['display_status'],
+                            icon_type: mainController
+                                .currentUserData['display_status'],
                             icon_size: 24,
                             icon_border: 4,
                           ),
@@ -158,11 +165,10 @@ class EditProfile extends StatelessWidget {
                 //         final result = await FlexColorPicker.showColorPicker(
                 //           context: context,
                 //           color: _selectedColor, // Set initial color
-                //           enableOpacity: true, // Allow transparency selection (optional)
                 //         );
                 //         if (result != null) {
                 //           _selectedColor.value = result.color;
-                //           // widget.onColorPicked(result.color.toHex()); // Call callback with hex code
+                //           // widget.onColorPicked(result.color.toHex());
                 //         }
                 //       },
                 //       child: Container(
@@ -195,13 +201,14 @@ class EditProfile extends StatelessWidget {
                             color: Colors.grey.shade400,
                             fontSize: 12)),
                     TextFormField(
-                      controller: displayController,
+                      controller: editProfileController.displayController,
                       decoration: InputDecoration(
                         contentPadding:
                             EdgeInsets.symmetric(vertical: 5, horizontal: 10),
                         floatingLabelBehavior: FloatingLabelBehavior.never,
                         border: OutlineInputBorder(),
-                        labelText: currentUserData['display_name'],
+                        labelText:
+                            mainController.currentUserData['display_name'],
                       ),
                     ),
                     SizedBox(
@@ -214,13 +221,14 @@ class EditProfile extends StatelessWidget {
                             fontSize: 12)),
                     TextFormField(
                       maxLength: 40,
-                      controller: pronounceController,
+                      controller: editProfileController.pronounceController,
                       decoration: InputDecoration(
                           contentPadding:
                               EdgeInsets.symmetric(vertical: 5, horizontal: 10),
                           floatingLabelBehavior: FloatingLabelBehavior.never,
                           border: OutlineInputBorder(),
-                          labelText: currentUserData['pronounce']),
+                          labelText:
+                              mainController.currentUserData['pronounce']),
                     ),
                     SizedBox(
                       height: 20,
@@ -231,7 +239,7 @@ class EditProfile extends StatelessWidget {
                             color: Colors.grey.shade400,
                             fontSize: 12)),
                     TextFormField(
-                      controller: aboutMeController,
+                      controller: editProfileController.aboutMeController,
                       maxLines: 7,
                       maxLength: 190,
                       decoration: InputDecoration(
@@ -239,7 +247,7 @@ class EditProfile extends StatelessWidget {
                             EdgeInsets.symmetric(vertical: 5, horizontal: 10),
                         floatingLabelBehavior: FloatingLabelBehavior.never,
                         border: OutlineInputBorder(),
-                        label: Text(currentUserData['about_me']),
+                        label: Text(mainController.currentUserData['about_me']),
                         // labelStyle: TextStyle(overflow: TextOverflow.ellipsis)
                       ),
                     ),

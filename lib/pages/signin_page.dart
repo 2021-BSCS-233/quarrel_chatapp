@@ -1,29 +1,16 @@
 import 'package:flutter/cupertino.dart';
-import 'package:quarrel/pages/login_page.dart';
-import 'package:quarrel/services/firebase_services.dart';
-import 'package:quarrel/widgets/input_field.dart';
 import 'package:flutter/material.dart';
 import 'package:quarrel/main.dart';
 import 'package:get/get.dart';
-
-TextEditingController signInUsernameController = TextEditingController();
-TextEditingController signInDisplayController = TextEditingController();
-TextEditingController signInEmailController = TextEditingController();
-TextEditingController signInPassController = TextEditingController();
-
-var showOverlaySignIn = false.obs;
-var showMessageSignIn = false.obs;
-double messageHeightSignIn = 250;
-String failMessage = '';
+import 'package:quarrel/pages/login_page.dart';
+import 'package:quarrel/widgets/input_field.dart';
+import 'package:quarrel/services/controllers.dart';
+import 'package:quarrel/services/firebase_services.dart';
 
 class Signin extends StatelessWidget {
-  void checkNameFormat(TextEditingController controller) {
-    if (RegExp(r'^[a-zA-Z][a-zA-Z0-9_]*?$').hasMatch(controller.text)) {
-      print('matches');
-    } else {
-      print('doesnt match');
-    }
-  }
+  final SigninController signinController = Get.put(SigninController());
+
+  Signin({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -70,7 +57,7 @@ class Signin extends StatelessWidget {
                   ),
                   InputField(
                     fieldLabel: 'Username',
-                    controller: signInUsernameController,
+                    controller: signinController.signInUsernameController,
                     fieldRadius: 2,
                     horizontalMargin: 0,
                     verticalMargin: 2,
@@ -84,7 +71,7 @@ class Signin extends StatelessWidget {
                   ),
                   InputField(
                     fieldLabel: 'Display Name',
-                    controller: signInDisplayController,
+                    controller: signinController.signInDisplayController,
                     fieldRadius: 2,
                     horizontalMargin: 0,
                     verticalMargin: 2,
@@ -94,7 +81,7 @@ class Signin extends StatelessWidget {
                   ),
                   InputField(
                     fieldLabel: 'Email',
-                    controller: signInEmailController,
+                    controller: signinController.signInEmailController,
                     fieldRadius: 2,
                     horizontalMargin: 0,
                     verticalMargin: 2,
@@ -104,7 +91,7 @@ class Signin extends StatelessWidget {
                   ),
                   InputField(
                     fieldLabel: 'Password',
-                    controller: signInPassController,
+                    controller: signinController.signInPassController,
                     fieldRadius: 2,
                     horizontalMargin: 0,
                     verticalMargin: 2,
@@ -117,20 +104,20 @@ class Signin extends StatelessWidget {
                   ),
                   InkWell(
                     onTap: () async {
-                      showOverlaySignIn.value = true;
-                      var userData = await sendSignIn(
-                          signInUsernameController.text.trim(),
-                          signInDisplayController.text.trim(),
-                          signInEmailController.text.trim(),
-                          signInPassController.text.trim());
+                      signinController.showOverlaySignIn.value = true;
+                      var userData = await signinController.sendSignIn(
+                          signinController.signInUsernameController.text.trim(),
+                          signinController.signInDisplayController.text.trim(),
+                          signinController.signInEmailController.text.trim(),
+                          signinController.signInPassController.text.trim());
                       if (userData != 0) {
                         await saveUserOnDevice(
-                            signInEmailController.text.trim(),
-                            signInPassController.text.trim());
-                        showOverlaySignIn.value = false;
+                            signinController.signInEmailController.text.trim(),
+                            signinController.signInPassController.text.trim());
+                        signinController.showOverlaySignIn.value = false;
                         userData[0]['id'] = userData[1].user.uid;
                         Get.off(Home(
-                          currentUserData: userData[0],
+                          userData: userData[0],
                         ));
                       } else {
                         print('SingIn failed');
@@ -166,14 +153,15 @@ class Signin extends StatelessWidget {
           ),
         ),
         Obx(() => Visibility(
-              visible: showOverlaySignIn.value || showMessageSignIn.value,
+              visible: signinController.showOverlaySignIn.value ||
+                  signinController.showMessageSignIn.value,
               child: GestureDetector(
-                onTap: showMessageSignIn.value
+                onTap: signinController.showMessageSignIn.value
                     ? () {
-                        showMessageSignIn.value = false;
-                        showOverlaySignIn.value = false;
-                        messageHeightSignIn = 250;
-                        failMessage = '';
+                        signinController.showMessageSignIn.value = false;
+                        signinController.showOverlaySignIn.value = false;
+                        signinController.messageHeightSignIn = 250;
+                        signinController.failMessage = '';
                       }
                     : () {},
                 child: Container(
@@ -187,11 +175,11 @@ class Signin extends StatelessWidget {
         Obx(() => Material(
               color: Colors.transparent,
               child: Visibility(
-                visible: showMessageSignIn.value,
+                visible: signinController.showMessageSignIn.value,
                 child: Center(
                   child: Container(
                     padding: EdgeInsets.all(20),
-                    height: messageHeightSignIn,
+                    height: signinController.messageHeightSignIn,
                     width: 300,
                     decoration: BoxDecoration(
                         color: Color(0xFF121218),
@@ -203,17 +191,17 @@ class Signin extends StatelessWidget {
                             style: TextStyle(
                                 fontWeight: FontWeight.bold, fontSize: 18)),
                         SizedBox(height: 5),
-                        Text(failMessage,
+                        Text(signinController.failMessage,
                             // textAlign: TextAlign.center,
                             style: TextStyle(
                                 fontWeight: FontWeight.bold, fontSize: 15)),
                         SizedBox(height: 35),
                         InkWell(
                           onTap: () {
-                            showMessageSignIn.value = false;
-                            showOverlaySignIn.value = false;
-                            messageHeightSignIn = 250;
-                            failMessage = '';
+                            signinController.showMessageSignIn.value = false;
+                            signinController.showOverlaySignIn.value = false;
+                            signinController.messageHeightSignIn = 250;
+                            signinController.failMessage = '';
                           },
                           child: Container(
                             height: 50,
@@ -239,46 +227,5 @@ class Signin extends StatelessWidget {
             )),
       ],
     );
-  }
-}
-
-sendSignIn(user, display, email, pass) async {
-  if (RegExp(r'^[a-zA-Z][a-zA-Z0-9_]*?$').hasMatch(user) &&
-      user.length >= 3 &&
-      user.length <= 20 &&
-      RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$').hasMatch(email) &&
-      RegExp(r'.{8,}').hasMatch(pass)) {
-    print('All accepted');
-    var response = await signInUser(user, display, email, pass);
-    if (response?[0] != false) {
-      return response;
-    } else {
-      failMessage = '• ${response?[1]}';
-      showOverlaySignIn.value = true;
-      showMessageSignIn.value = true;
-      return 0;
-    }
-  } else {
-    if (user == '') {
-      failMessage = '• Pls Enter a Username';
-    } else if (user.length < 3 || user.length > 20) {
-      failMessage = '• Length of Username Must Between 3 to 20';
-    } else if (!(RegExp(r'^[a-zA-Z][a-zA-Z0-9_]+?$').hasMatch(user))) {
-      failMessage =
-          '• Username Must Start With An Alphabet And Can Only Container Letters, Numbers and \'_\'';
-      messageHeightSignIn += 15;
-    }
-    if (!(RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$').hasMatch(email))) {
-      failMessage = "$failMessage\n• Invalid Email Format";
-      messageHeightSignIn += 10;
-    }
-    if (!(RegExp(r'.{8,}').hasMatch(pass))) {
-      failMessage = "$failMessage\n• Password Must be At Least 8 Characters";
-      messageHeightSignIn += 10;
-    }
-    showOverlaySignIn.value = true;
-    showMessageSignIn.value = true;
-    print('failed');
-    return 0;
   }
 }

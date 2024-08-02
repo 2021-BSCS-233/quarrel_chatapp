@@ -4,7 +4,7 @@ import 'package:quarrel/main.dart';
 import 'package:get/get.dart';
 import 'package:quarrel/pages/login_page.dart';
 import 'package:quarrel/widgets/input_field.dart';
-import 'package:quarrel/services/controllers.dart';
+import 'package:quarrel/services/page_controllers.dart';
 import 'package:quarrel/services/firebase_services.dart';
 
 class Signin extends StatelessWidget {
@@ -31,7 +31,7 @@ class Signin extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 // mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  SizedBox(
+                  const SizedBox(
                     height: 30,
                   ),
                   Text(
@@ -42,7 +42,7 @@ class Signin extends StatelessWidget {
                     ),
                   ),
                   Text('We\'re excited to see you join us!'),
-                  SizedBox(
+                  const SizedBox(
                     height: 40,
                   ),
                   Align(
@@ -65,9 +65,6 @@ class Signin extends StatelessWidget {
                     contentTopPadding: 13,
                     suffixIcon: Icons.all_inclusive,
                     maxLength: 20,
-                    // on_change: () {
-                    //   checkNameFormat(username_controller);
-                    // },
                   ),
                   InputField(
                     fieldLabel: 'Display Name',
@@ -99,7 +96,7 @@ class Signin extends StatelessWidget {
                     contentTopPadding: 13,
                     suffixIcon: CupertinoIcons.eye,
                   ),
-                  SizedBox(
+                  const SizedBox(
                     height: 40,
                   ),
                   InkWell(
@@ -168,7 +165,7 @@ class Signin extends StatelessWidget {
                   color: Color(0xC01D1D1F),
                   height: MediaQuery.of(context).size.height,
                   width: double.infinity,
-                  child: Center(child: CircularProgressIndicator()),
+                  child: const Center(child: CircularProgressIndicator()),
                 ),
               ),
             )),
@@ -190,12 +187,12 @@ class Signin extends StatelessWidget {
                         Text('SignIn Failed',
                             style: TextStyle(
                                 fontWeight: FontWeight.bold, fontSize: 18)),
-                        SizedBox(height: 5),
+                        const SizedBox(height: 5),
                         Text(signinController.failMessage,
                             // textAlign: TextAlign.center,
                             style: TextStyle(
                                 fontWeight: FontWeight.bold, fontSize: 15)),
-                        SizedBox(height: 35),
+                        const SizedBox(height: 35),
                         InkWell(
                           onTap: () {
                             signinController.showMessageSignIn.value = false;

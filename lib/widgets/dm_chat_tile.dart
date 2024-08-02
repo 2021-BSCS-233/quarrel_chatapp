@@ -1,5 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:quarrel/services/controllers.dart';
+import 'package:quarrel/services/page_controllers.dart';
 import 'package:quarrel/widgets/status_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -9,9 +9,7 @@ class DmChatTile extends StatelessWidget {
   final MainController mainController = Get.find<MainController>();
   final Map chatData;
 
-  DmChatTile(
-      {super.key,
-      required this.chatData});
+  DmChatTile({super.key, required this.chatData});
 
   @override
   Widget build(BuildContext context) {
@@ -34,7 +32,7 @@ class DmChatTile extends StatelessWidget {
       timeDifference = '${(difference.inDays / 365).floor()}yr';
     }
     return Container(
-      margin: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+      margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
       child: ListTile(
         titleAlignment: ListTileTitleAlignment.top,
         onTap: () {
@@ -45,14 +43,11 @@ class DmChatTile extends StatelessWidget {
           ));
         },
         onLongPress: () {
-          print('Long Press');
           mainController.toggleMenu([
             chatData['id'],
-            chatData['receiver_data']['username'] == null
-                ? ''
-                : chatData['receiver_data']['username'],
-            chatData['receiver_data']['profile_picture'],
-            chatData['chat_type']
+            chatData['receiver_data']['username'] ?? '',
+            chatData['receiver_data']['profile_picture'] ?? '',
+            chatData['chat_type'] ?? ''
           ]);
         },
         dense: true,
@@ -60,11 +55,12 @@ class DmChatTile extends StatelessWidget {
         leading: Stack(
           children: [
             CircleAvatar(
-              backgroundImage: chatData['receiver_data']['profile_picture'] !=
-                      ''
-                  ? CachedNetworkImageProvider(
-                      chatData['receiver_data']['profile_picture'])
-                  : AssetImage('assets/images/default.png') as ImageProvider,
+              backgroundImage:
+                  chatData['receiver_data']['profile_picture'] != ''
+                      ? CachedNetworkImageProvider(
+                          chatData['receiver_data']['profile_picture'])
+                      : const AssetImage('assets/images/default.png')
+                          as ImageProvider,
               radius: 20,
               backgroundColor: Colors.grey.shade900,
             ),
@@ -72,7 +68,7 @@ class DmChatTile extends StatelessWidget {
               bottom: -1,
               right: -1,
               child: StatusIcon(
-                icon_type: chatData['receiver_data']['status'] == 'Online'
+                iconType: chatData['receiver_data']['status'] == 'Online'
                     ? chatData['receiver_data']['display_status']
                     : chatData['receiver_data']['status'],
               ),

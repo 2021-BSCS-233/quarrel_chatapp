@@ -3,7 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-import 'package:quarrel/services/controllers.dart';
+import 'package:quarrel/services/page_controllers.dart';
 import 'package:quarrel/services/firebase_services.dart';
 import 'package:quarrel/widgets/status_icons.dart';
 import 'package:quarrel/widgets/option_tile.dart';
@@ -15,7 +15,7 @@ class UserGroupPopup extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return SizedBox(
       height: MediaQuery.of(context).size.height * 0.56,
       child: Scaffold(
         backgroundColor: Colors.transparent,
@@ -35,14 +35,14 @@ class UserGroupPopup extends StatelessWidget {
                     leading: CircleAvatar(
                       backgroundImage: tileContent[2] != ''
                           ? CachedNetworkImageProvider(tileContent[2])
-                          : AssetImage('assets/images/default.png')
+                          : const AssetImage('assets/images/default.png')
                               as ImageProvider,
                       radius: 25,
                       backgroundColor: Colors.transparent,
                     ),
                     title: Text(
                       '@${tileContent[1]}',
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                      style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                     onTap: () {},
                   ),
@@ -50,7 +50,7 @@ class UserGroupPopup extends StatelessWidget {
                 OptionTile(
                     action: () {
                       print(
-                          'Prolfie action on ${tileContent[0]}, chat type ${tileContent[3]}');
+                          'Profile action on ${tileContent[0]}, chat type ${tileContent[3]}');
                     },
                     action_icon: Icons.person,
                     action_name: 'Profile'),
@@ -78,18 +78,15 @@ class UserGroupPopup extends StatelessWidget {
 }
 
 class MessagePopup extends StatelessWidget {
-  final Map messageSelected;
   final String chatId;
   final MainController mainController = Get.find<MainController>();
+  final ChatController chatController = Get.find<ChatController>();
 
-  MessagePopup(
-      {super.key,
-      required this.messageSelected,
-      required this.chatId});
+  MessagePopup({super.key, required this.chatId});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return SizedBox(
       height: MediaQuery.of(context).size.height * 0.56,
       child: Scaffold(
         backgroundColor: Colors.transparent,
@@ -104,33 +101,38 @@ class MessagePopup extends StatelessWidget {
             child: SingleChildScrollView(
               child: Column(
                 children: [
-                  SizedBox(
+                  const SizedBox(
                     height: 10,
                   ),
-                  OptionTile(
-                      action: () {
-                        print('Edit action on ${messageSelected['id']}');
-                      },
-                      action_icon: Icons.edit,
-                      action_name: 'Edit Message'),
+                  chatController.chatContent[chatController.messageSelected]
+                              ['sender_id'] ==
+                          mainController.currentUserData['id']
+                      ? OptionTile(
+                          action: () {
+                            chatController.editChatMessage();
+                          },
+                          action_icon: Icons.edit,
+                          action_name: 'Edit Message')
+                      : const SizedBox(),
                   OptionTile(
                       action: () async {
-                        await Clipboard.setData(
-                            ClipboardData(text: messageSelected['message']));
+                        await Clipboard.setData(ClipboardData(
+                            text: chatController
+                                    .chatContent[chatController.messageSelected]
+                                ['message']));
                       },
                       action_icon: Icons.copy,
                       action_name: 'Copy Text'),
-                  messageSelected['sender_id'] == mainController.currentUserData['id']
+                  chatController.chatContent[chatController.messageSelected]
+                              ['sender_id'] ==
+                          mainController.currentUserData['id']
                       ? OptionTile(
                           action: () {
-                            deleteMessage(chatId, messageSelected['id']);
+                            chatController.deleteChatMessage();
                           },
                           action_icon: CupertinoIcons.delete,
                           action_name: 'Delete Message')
-                      : const SizedBox(
-                          height: 0,
-                          width: 0,
-                        ),
+                      : const SizedBox(),
                 ],
               ),
             ),
@@ -190,7 +192,7 @@ class ProfilePopup extends StatelessWidget {
                           decoration: BoxDecoration(
                               color: Colors.yellow.shade700,
                               //make it adapt to the major color of profile
-                              borderRadius: BorderRadius.only(
+                              borderRadius: const BorderRadius.only(
                                   topLeft: Radius.circular(25),
                                   topRight: Radius.circular(25))),
                         ),
@@ -219,7 +221,8 @@ class ProfilePopup extends StatelessWidget {
                                   userProfileData['profile_picture'] != ''
                                       ? CachedNetworkImageProvider(
                                           userProfileData['profile_picture'])
-                                      : AssetImage('assets/images/default.png')
+                                      : const AssetImage(
+                                              'assets/images/default.png')
                                           as ImageProvider,
                               // radius: 10,
                               backgroundColor: Colors.grey.shade900,
@@ -229,11 +232,11 @@ class ProfilePopup extends StatelessWidget {
                             bottom: 3,
                             right: 3,
                             child: StatusIcon(
-                              icon_type: userProfileData['status'] == 'Online'
+                              iconType: userProfileData['status'] == 'Online'
                                   ? userProfileData['display_status']
                                   : userProfileData['status'] ?? 'Offline',
-                              icon_size: 24,
-                              icon_border: 4,
+                              iconSize: 24,
+                              iconBorder: 4,
                             ),
                           ),
                         ],
@@ -255,10 +258,10 @@ class ProfilePopup extends StatelessWidget {
                     children: [
                       Text(
                         userProfileData['display_name'] ?? 'User Error',
-                        style: TextStyle(
+                        style: const TextStyle(
                             fontSize: 20, fontWeight: FontWeight.bold),
                       ),
-                      SizedBox(
+                      const SizedBox(
                         height: 3,
                       ),
                       Text(
@@ -266,14 +269,14 @@ class ProfilePopup extends StatelessWidget {
                             'Failed to load user data',
                         style: TextStyle(fontSize: 14),
                       ),
-                      SizedBox(
+                      const SizedBox(
                         height: 3,
                       ),
                       Text(
-                        userProfileData['pronounce'] ?? 'Try again later',
+                        userProfileData['pronouns'] ?? 'Try again later',
                         style: TextStyle(fontSize: 15, color: Colors.grey),
                       ),
-                      SizedBox(
+                      const SizedBox(
                         height: 16,
                       ),
                     ],
@@ -292,11 +295,11 @@ class ProfilePopup extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'About Me',
-                        style: TextStyle(
+                        'aboutMe'.tr,
+                        style: const TextStyle(
                             fontWeight: FontWeight.bold, color: Colors.grey),
                       ),
-                      SizedBox(
+                      const SizedBox(
                         height: 10,
                       ),
                       Text(
@@ -321,8 +324,7 @@ var selectedValue = 1.obs;
 class StatusPopup extends StatelessWidget {
   final Map currentUserData;
 
-  StatusPopup(
-      {super.key, required this.currentUserData}) {
+  StatusPopup({super.key, required this.currentUserData}) {
     if (currentUserData['display_status'] == 'DND') {
       selectedValue.value = 2;
     } else if (currentUserData['display_status'] == 'Asleep') {
@@ -334,7 +336,7 @@ class StatusPopup extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return SizedBox(
       height: MediaQuery.of(context).size.height * 0.5,
       width: double.infinity,
       child: Scaffold(
@@ -351,24 +353,25 @@ class StatusPopup extends StatelessWidget {
               child: Column(
                 children: [
                   Text(
-                    'Change Online Status',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                    'changeStatus'.tr,
+                    style: const TextStyle(
+                        fontWeight: FontWeight.bold, fontSize: 18),
                   ),
-                  SizedBox(
+                  const SizedBox(
                     height: 20,
                   ),
                   Align(
                     alignment: Alignment.centerLeft,
                     child: Text(
-                      'Online Status',
-                      style: TextStyle(
+                      'onlineStatus'.tr,
+                      style: const TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.bold,
                           color: Colors.grey),
                     ),
                   ),
                   Container(
-                    margin: EdgeInsets.symmetric(
+                    margin: const EdgeInsets.symmetric(
                       vertical: 10,
                     ),
                     // height: 200,
@@ -379,8 +382,8 @@ class StatusPopup extends StatelessWidget {
                     child: Obx(() => Column(
                           children: [
                             ListTile(
-                              leading: StatusIcon(icon_type: 'Online'),
-                              title: Text('Online'),
+                              leading: StatusIcon(iconType: 'Online'),
+                              title: Text('online'.tr),
                               trailing: Radio(
                                   value: 1,
                                   groupValue: selectedValue.value,
@@ -395,8 +398,8 @@ class StatusPopup extends StatelessWidget {
                                   }),
                             ),
                             ListTile(
-                              leading: StatusIcon(icon_type: 'DND'),
-                              title: Text('Do Not Disturb'),
+                              leading: StatusIcon(iconType: 'DND'),
+                              title: Text('dnd'.tr),
                               trailing: Radio(
                                   value: 2,
                                   groupValue: selectedValue.value,
@@ -411,8 +414,8 @@ class StatusPopup extends StatelessWidget {
                                   }),
                             ),
                             ListTile(
-                              leading: StatusIcon(icon_type: 'Asleep'),
-                              title: Text('Idel'),
+                              leading: StatusIcon(iconType: 'Asleep'),
+                              title: Text('idle'.tr),
                               trailing: Radio(
                                   value: 3,
                                   groupValue: selectedValue.value,
@@ -427,8 +430,8 @@ class StatusPopup extends StatelessWidget {
                                   }),
                             ),
                             ListTile(
-                              leading: StatusIcon(icon_type: 'Offline'),
-                              title: Text('Hidden'),
+                              leading: StatusIcon(iconType: 'Offline'),
+                              title: Text('hidden'.tr),
                               trailing: Radio(
                                   value: 4,
                                   groupValue: selectedValue.value,

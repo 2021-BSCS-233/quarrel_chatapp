@@ -3,10 +3,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:quarrel/pages/edit_profile_page.dart';
-import 'package:quarrel/pages/edit_account_page.dart';
-import 'package:quarrel/services/controllers.dart';
+import 'package:quarrel/pages/settings_page.dart';
+import 'package:quarrel/services/page_controllers.dart';
 import 'package:quarrel/widgets/status_icons.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class Profile extends StatelessWidget {
   final MainController mainController = Get.find<MainController>();
@@ -65,36 +64,40 @@ class Profile extends StatelessWidget {
                             bottom: 3,
                             right: 3,
                             child: StatusIcon(
-                              icon_type: mainController
+                              iconType: mainController
                                   .currentUserData['display_status'],
-                              icon_size: 24,
-                              icon_border: 4,
+                              iconSize: 24,
+                              iconBorder: 4,
                             ),
                           ),
                         ],
                       ),
                     ),
-                    // Positioned(
-                    //     right: 15,
-                    //     top: 40,
-                    //     child: InkWell(
-                    //       onTap: (){
-                    //         Get.to(EditAccount(clientUserData: clientUserData,));
-                    //       },
-                    //       child: Container(
-                    //           height: 35,
-                    //           width: 35,
-                    //           decoration: BoxDecoration(
-                    //             shape: BoxShape.circle,
-                    //             color: Colors.black54
-                    //           ),
-                    //           child: Icon(Icons.settings, size: 28,)),
-                    //     ))
+                    Positioned(
+                        right: 15,
+                        top: 40,
+                        child: InkWell(
+                          onTap: () {
+                            Get.to(Settings());
+                          },
+                          child: Container(
+                              height: 35,
+                              width: 35,
+                              decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: Colors.black54),
+                              child: const Icon(
+                                Icons.settings,
+                                size: 28,
+                              )),
+                        ))
                   ],
                 ),
                 Container(
-                  margin: EdgeInsets.symmetric(vertical: 10, horizontal: 15),
-                  padding: EdgeInsets.symmetric(horizontal: 14, vertical: 18),
+                  margin:
+                      const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 18),
                   alignment: Alignment.centerLeft,
                   width: double.infinity,
                   height: 168,
@@ -108,24 +111,25 @@ class Profile extends StatelessWidget {
                         mainController.updateM.value == 1
                             ? mainController.currentUserData['display_name']
                             : mainController.currentUserData['display_name'],
-                        style: TextStyle(
+                        style: const TextStyle(
                             fontSize: 20, fontWeight: FontWeight.bold),
                       ),
-                      SizedBox(
+                      const SizedBox(
                         height: 3,
                       ),
                       Text(
                         mainController.currentUserData['username'],
-                        style: TextStyle(fontSize: 14),
+                        style: const TextStyle(fontSize: 14),
                       ),
-                      SizedBox(
+                      const SizedBox(
                         height: 3,
                       ),
                       Text(
-                        mainController.currentUserData['pronounce'],
-                        style: TextStyle(fontSize: 15, color: Colors.grey),
+                        mainController.currentUserData['pronouns'],
+                        style:
+                            const TextStyle(fontSize: 15, color: Colors.grey),
                       ),
-                      SizedBox(
+                      const SizedBox(
                         height: 16,
                       ),
                       Container(
@@ -144,19 +148,19 @@ class Profile extends StatelessWidget {
                                   padding: EdgeInsets.symmetric(horizontal: 10),
                                   decoration: BoxDecoration(
                                       color: Colors.blueAccent.shade400,
-                                      borderRadius: BorderRadius.all(
+                                      borderRadius: const BorderRadius.all(
                                           Radius.circular(20))),
                                   child: Row(
                                     mainAxisAlignment:
                                         MainAxisAlignment.spaceEvenly,
                                     children: [
-                                      Icon(
+                                      const Icon(
                                         CupertinoIcons.chat_bubble_fill,
                                         size: 20,
                                       ),
                                       Text(
-                                        'Edit Status',
-                                        style: TextStyle(
+                                        'editStatus'.tr,
+                                        style: const TextStyle(
                                           fontWeight: FontWeight.bold,
                                         ),
                                       )
@@ -180,13 +184,13 @@ class Profile extends StatelessWidget {
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceEvenly,
                                   children: [
-                                    Icon(
+                                    const Icon(
                                       Icons.edit,
                                       size: 20,
                                     ),
                                     Text(
-                                      'Edit Profile',
-                                      style: TextStyle(
+                                      'editProfile'.tr,
+                                      style: const TextStyle(
                                         fontWeight: FontWeight.bold,
                                       ),
                                     )
@@ -213,11 +217,11 @@ class Profile extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'About Me',
-                        style: TextStyle(
+                        'aboutMe'.tr,
+                        style: const TextStyle(
                             fontWeight: FontWeight.bold, color: Colors.grey),
                       ),
-                      SizedBox(
+                      const SizedBox(
                         height: 10,
                       ),
                       Text(
@@ -228,38 +232,6 @@ class Profile extends StatelessWidget {
                     ],
                   ),
                 ),
-                // SizedBox(
-                //   height: 20,
-                // ),
-                // InkWell(
-                //   onTap: () async {
-                //     final SharedPreferences prefs =
-                //         await SharedPreferences.getInstance();
-                //     await prefs.remove('email');
-                //     await prefs.remove('password');
-                //     Get.offAll();
-                //   },
-                //   child: Align(
-                //     alignment: Alignment.centerRight,
-                //     child: Container(
-                //       height: 45,
-                //       width: 140,
-                //       decoration: BoxDecoration(
-                //           color: Colors.transparent,
-                //           border: Border.all(color: Colors.redAccent),
-                //           borderRadius: BorderRadius.all(Radius.circular(10))),
-                //       child: Center(
-                //         child: Text(
-                //           'Log Out',
-                //           style: TextStyle(
-                //               fontWeight: FontWeight.bold,
-                //               fontSize: 15,
-                //               color: Colors.redAccent),
-                //         ),
-                //       ),
-                //     ),
-                //   ),
-                // )
               ],
             )),
       ),

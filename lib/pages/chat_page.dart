@@ -6,12 +6,12 @@ import 'package:quarrel/widgets/message_tile.dart';
 import 'package:quarrel/widgets/popup_menus.dart';
 import 'package:quarrel/widgets/input_field.dart';
 import 'package:quarrel/widgets/status_icons.dart';
-import 'package:quarrel/services/controllers.dart';
+import 'package:quarrel/services/page_controllers.dart';
 import 'package:quarrel/services/firebase_services.dart';
 
 class Chat extends StatelessWidget {
   final MainController mainController = Get.find<MainController>();
-  final ChatController chatController = Get.put(ChatController());
+  late final ChatController chatController;
   final String chatId;
   final List otherUsersData;
   final String chatType;
@@ -21,31 +21,13 @@ class Chat extends StatelessWidget {
       required this.chatId,
       required this.otherUsersData,
       required this.chatType}) {
+    chatController = Get.put(ChatController(chatId: chatId));
     chatController.initial = true;
     chatController.userMap[mainController.currentUserData['id']] =
         mainController.currentUserData;
     for (var user in otherUsersData) {
       chatController.userMap[user['id']] = user;
     }
-  }
-
-  void toggleMenu(int index) {
-    if (index != -1) {
-      chatController.messageSelected = index;
-    }
-    chatController.showMenu.value = true;
-  }
-
-  void toggleProfile(int index) {
-    if (index != -1) {
-      chatController.messageSelected = index;
-    }
-    chatController.showProfile.value = !chatController.showProfile.value;
-  }
-
-  void changing() {
-    chatController.fieldCheck.value =
-        (chatController.chatFieldController.text != '' ? true : false);
   }
 
   @override
@@ -63,7 +45,7 @@ class Chat extends StatelessWidget {
                           otherUsersData[0]['profile_picture'] != ''
                               ? CachedNetworkImageProvider(
                                   otherUsersData[0]['profile_picture'])
-                              : AssetImage('assets/images/default.png')
+                              : const AssetImage('assets/images/default.png')
                                   as ImageProvider,
                       radius: 17,
                       backgroundColor: Colors.transparent,
@@ -72,16 +54,16 @@ class Chat extends StatelessWidget {
                       bottom: -2,
                       right: -2,
                       child: StatusIcon(
-                        icon_type: otherUsersData[0]['status'] == 'Online'
+                        iconType: otherUsersData[0]['status'] == 'Online'
                             ? otherUsersData[0]['display_status']
                             : otherUsersData[0]['status'],
-                        icon_size: 16.0,
-                        icon_border: 3,
+                        iconSize: 16.0,
+                        iconBorder: 3,
                       ),
                     ),
                   ],
                 ),
-                SizedBox(
+                const SizedBox(
                   width: 10,
                 ),
                 Text(
@@ -95,7 +77,7 @@ class Chat extends StatelessWidget {
             ),
           ),
           body: Container(
-            padding: EdgeInsets.symmetric(vertical: 10, horizontal: 0),
+            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 0),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
@@ -106,7 +88,7 @@ class Chat extends StatelessWidget {
                       return snapshot.data!;
                     } else if (snapshot.hasError) {
                       print(snapshot.error);
-                      return Material(
+                      return const Material(
                           color: Colors.transparent,
                           child: Center(
                             child: Column(
@@ -118,10 +100,10 @@ class Chat extends StatelessWidget {
                             ),
                           ));
                     }
-                    return Center(child: CircularProgressIndicator());
+                    return const Center(child: CircularProgressIndicator());
                   },
                 ),
-                SizedBox(
+                const SizedBox(
                   height: 20,
                 ),
                 Row(
@@ -132,26 +114,27 @@ class Chat extends StatelessWidget {
                         onPressed: () {
                           print(chatController.fieldCheck.value);
                         },
-                        child: Icon(
-                          Icons.add,
-                          size: 30,
-                        ),
                         style: ButtonStyle(
                           padding: MaterialStateProperty.all<EdgeInsets>(
-                            EdgeInsets.all(0),
+                            const EdgeInsets.all(0),
                           ),
+                        ),
+                        child: const Icon(
+                          Icons.add,
+                          size: 30,
                         ),
                       ),
                     ),
                     Expanded(
                       child: InputField(
+                        fieldFocusNode: chatController.chatFocusNode,
                         fieldRadius: 20,
-                        fieldLabel:
-                            'Message @${otherUsersData[0]['display_name']}',
+                        fieldLabel: 'messageTo'.trParams(
+                            {'name': otherUsersData[0]['display_name']}),
                         controller: chatController.chatFieldController,
                         suffixIcon: Icons.all_inclusive,
                         fieldColor: Color(0xFF151515),
-                        onChange: changing,
+                        onChange: chatController.changing,
                         maxLines: 4,
                       ),
                     ),
@@ -164,26 +147,40 @@ class Chat extends StatelessWidget {
                             width: 40,
                             height: 40,
                             child: TextButton(
-                              child: Icon(
-                                Icons.send,
-                                size: 25,
-                              ),
                               onPressed: () {
                                 chatController.fieldCheck.value = false;
-                                sendMessage(
-                                    chatId,
-                                    chatController.chatFieldController.text,
-                                    mainController.currentUserData['id']);
+                                chatController.editMode
+                                    ? editMessage(
+                                        chatId,
+                                        chatController.chatContent[
+                                                chatController.messageSelected]
+                                            ['id'],
+                                        chatController.chatFieldController.text)
+                                    : sendMessage(
+                                        chatId,
+                                        chatController.chatFieldController.text,
+                                        mainController.currentUserData['id']);
+                                chatController.editMode
+                                    ? chatController.chatFocusNode.unfocus()
+                                    : null;
+                                chatController.editMode = false;
                                 chatController.chatFieldController.clear();
                               },
                               style: ButtonStyle(
                                 padding: MaterialStateProperty.all<EdgeInsets>(
-                                  EdgeInsets.all(0),
+                                  const EdgeInsets.all(0),
                                 ),
+                              ),
+                              child: const Icon(
+                                Icons.send,
+                                size: 25,
                               ),
                             ),
                           ),
-                        ))
+                        )),
+                    const SizedBox(
+                      width: 10,
+                    )
                   ],
                 )
               ],
@@ -206,7 +203,7 @@ class Chat extends StatelessWidget {
               ),
             )),
         Obx(() => AnimatedPositioned(
-              duration: Duration(milliseconds: 200),
+              duration: const Duration(milliseconds: 200),
               curve: Curves.easeInOut,
               bottom: chatController.showMenu.value
                   ? 0.0
@@ -215,14 +212,12 @@ class Chat extends StatelessWidget {
               right: 0.0,
               child: chatController.chatContent.length > 1
                   ? MessagePopup(
-                      messageSelected: chatController
-                          .chatContent[chatController.messageSelected],
                       chatId: chatId,
                     )
                   : Container(),
             )),
         Obx(() => AnimatedPositioned(
-              duration: Duration(milliseconds: 200),
+              duration: const Duration(milliseconds: 200),
               curve: Curves.easeInOut,
               bottom: chatController.showProfile.value
                   ? 0.0
@@ -244,8 +239,8 @@ class Chat extends StatelessWidget {
     chatController.initial ? await chatController.getMessages(chatId) : null;
     return Obx(
       () => chatController.updateC.value == chatController.updateC.value &&
-              chatController.chatContent.length < 1
-          ? Center(child: Text('No Chats Found, Start Chatting'))
+              chatController.chatContent.isEmpty
+          ? Center(child: Text('chatEmpty'.tr))
           : Expanded(
               child: ListView.builder(
                 itemCount: chatController.chatContent.length,
@@ -260,10 +255,10 @@ class Chat extends StatelessWidget {
                         sendingUser: chatController.userMap[
                             chatController.chatContent[index]['sender_id']],
                         toggleMenu: () {
-                          toggleMenu(index);
+                          chatController.toggleMenu(index);
                         },
                         toggleProfile: () {
-                          toggleProfile(index);
+                          chatController.toggleProfile(index);
                         },
                       );
                     } else {
@@ -290,7 +285,7 @@ class Chat extends StatelessWidget {
                             sendingUser: chatController.userMap[
                                 chatController.chatContent[index]['sender_id']],
                             toggleMenu: () {
-                              toggleMenu(index);
+                              chatController.toggleMenu(index);
                             });
                       } else {
                         return MessageTileFull(
@@ -298,10 +293,10 @@ class Chat extends StatelessWidget {
                           sendingUser: chatController.userMap[
                               chatController.chatContent[index]['sender_id']],
                           toggleMenu: () {
-                            toggleMenu(index);
+                            chatController.toggleMenu(index);
                           },
                           toggleProfile: () {
-                            toggleProfile(index);
+                            chatController.toggleProfile(index);
                           },
                         );
                       }
@@ -312,10 +307,10 @@ class Chat extends StatelessWidget {
                       sendingUser: chatController.userMap[
                           chatController.chatContent[index]['sender_id']],
                       toggleMenu: () {
-                        toggleMenu(index);
+                        chatController.toggleMenu(index);
                       },
                       toggleProfile: () {
-                        toggleProfile(index);
+                        chatController.toggleProfile(index);
                       },
                     );
                   }

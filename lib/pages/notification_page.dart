@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 
-class Notifications extends StatelessWidget{
+//this page is not in use for now
+class Notifications extends StatelessWidget {
   const Notifications({super.key});
 
-
   @override
-  Widget build(BuildContext context){
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
+        title: const Text(
           'Notifications',
           style: TextStyle(
               fontWeight: FontWeight.bold,
@@ -19,10 +19,19 @@ class Notifications extends StatelessWidget{
       body: Container(
         padding: EdgeInsets.all(10),
         child: ListView(
-          children: [
-            ListTile(leading: Icon(Icons.notification_add),title: Text('Notification 1'),),
-            ListTile(leading: Icon(Icons.notification_add),title: Text('Notification 2'),),
-            ListTile(leading: Icon(Icons.notification_add),title: Text('Notification 3'),)
+          children: const [
+            ListTile(
+              leading: Icon(Icons.notification_add),
+              title: Text('Notification 1'),
+            ),
+            ListTile(
+              leading: Icon(Icons.notification_add),
+              title: Text('Notification 2'),
+            ),
+            ListTile(
+              leading: Icon(Icons.notification_add),
+              title: Text('Notification 3'),
+            )
           ],
         ),
       ),

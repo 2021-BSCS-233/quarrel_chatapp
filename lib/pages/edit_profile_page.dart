@@ -3,7 +3,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:quarrel/services/controllers.dart';
+import 'package:quarrel/services/page_controllers.dart';
 import 'package:quarrel/widgets/status_icons.dart';
 import 'package:quarrel/services/firebase_services.dart';
 
@@ -19,7 +19,7 @@ class EditProfile extends StatelessWidget {
     editProfileController.displayController.text =
         mainController.currentUserData['display_name'];
     editProfileController.pronounceController.text =
-        mainController.currentUserData['pronounce'];
+        mainController.currentUserData['pronouns'];
     editProfileController.aboutMeController.text =
         mainController.currentUserData['about_me'];
     editProfileController.image = null;
@@ -31,8 +31,8 @@ class EditProfile extends StatelessWidget {
       backgroundColor: Color(0xFF121218),
       appBar: AppBar(
         title: Text(
-          'Edit Profile',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+          'editProfile'.tr,
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
         ),
         centerTitle: true,
         actions: [
@@ -45,20 +45,20 @@ class EditProfile extends StatelessWidget {
                       : mainController.currentUserData['display_name'],
                   editProfileController.pronounceController.text.trim() != ''
                       ? editProfileController.pronounceController.text.trim()
-                      : mainController.currentUserData['pronounce'],
+                      : mainController.currentUserData['pronouns'],
                   editProfileController.aboutMeController.text.trim() != ''
                       ? editProfileController.aboutMeController.text.trim()
                       : mainController.currentUserData['about_me'],
                   editProfileController.image);
               Get.back();
             },
-            child: Container(
+            child: SizedBox(
               height: 50,
               width: 80,
               child: Center(
                 child: Text(
-                  'Save',
-                  style: TextStyle(
+                  'save'.tr,
+                  style: const TextStyle(
                       color: Colors.blueAccent,
                       fontSize: 16,
                       fontWeight: FontWeight.bold),
@@ -78,8 +78,7 @@ class EditProfile extends StatelessWidget {
                     Container(
                       width: double.infinity,
                       height: 150,
-                      color: Colors.yellow
-                          .shade700,
+                      color: Colors.yellow.shade700,
                     ),
                     Container(
                       width: double.infinity,
@@ -132,10 +131,10 @@ class EditProfile extends StatelessWidget {
                           bottom: 3,
                           right: 3,
                           child: StatusIcon(
-                            icon_type: mainController
+                            iconType: mainController
                                 .currentUserData['display_status'],
-                            icon_size: 24,
-                            icon_border: 4,
+                            iconSize: 24,
+                            iconBorder: 4,
                           ),
                         ),
                         Positioned(
@@ -144,14 +143,14 @@ class EditProfile extends StatelessWidget {
                             child: Container(
                               height: 24,
                               width: 24,
+                              decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: Color(0xFF121218)),
                               child: Icon(
                                 Icons.edit,
                                 size: 14,
                                 color: Colors.grey.shade400,
                               ),
-                              decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: Color(0xFF121218)),
                             )),
                       ],
                     ),
@@ -183,19 +182,19 @@ class EditProfile extends StatelessWidget {
               ],
             ),
             Container(
-              margin: EdgeInsets.symmetric(vertical: 10, horizontal: 15),
-              padding: EdgeInsets.symmetric(horizontal: 14, vertical: 18),
+              margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 18),
               alignment: Alignment.centerLeft,
               width: double.infinity,
               decoration: BoxDecoration(
                   color: Colors.black,
                   borderRadius: BorderRadius.all(Radius.circular(15))),
-              child: Container(
+              child: SizedBox(
                 width: double.infinity,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('DISPLAY NAME',
+                    Text('displayNameU'.tr,
                         style: TextStyle(
                             fontWeight: FontWeight.bold,
                             color: Colors.grey.shade400,
@@ -203,18 +202,18 @@ class EditProfile extends StatelessWidget {
                     TextFormField(
                       controller: editProfileController.displayController,
                       decoration: InputDecoration(
-                        contentPadding:
-                            EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+                        contentPadding: const EdgeInsets.symmetric(
+                            vertical: 5, horizontal: 10),
                         floatingLabelBehavior: FloatingLabelBehavior.never,
-                        border: OutlineInputBorder(),
+                        border: const OutlineInputBorder(),
                         labelText:
                             mainController.currentUserData['display_name'],
                       ),
                     ),
-                    SizedBox(
+                    const SizedBox(
                       height: 20,
                     ),
-                    Text('PRONOUNS',
+                    Text('pronounsU'.tr,
                         style: TextStyle(
                             fontWeight: FontWeight.bold,
                             color: Colors.grey.shade400,
@@ -223,17 +222,17 @@ class EditProfile extends StatelessWidget {
                       maxLength: 40,
                       controller: editProfileController.pronounceController,
                       decoration: InputDecoration(
-                          contentPadding:
-                              EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+                          contentPadding: const EdgeInsets.symmetric(
+                              vertical: 5, horizontal: 10),
                           floatingLabelBehavior: FloatingLabelBehavior.never,
-                          border: OutlineInputBorder(),
+                          border: const OutlineInputBorder(),
                           labelText:
-                              mainController.currentUserData['pronounce']),
+                              mainController.currentUserData['pronouns']),
                     ),
-                    SizedBox(
+                    const SizedBox(
                       height: 20,
                     ),
-                    Text('ABOUT ME',
+                    Text('aboutMeU'.tr,
                         style: TextStyle(
                             fontWeight: FontWeight.bold,
                             color: Colors.grey.shade400,
@@ -243,10 +242,10 @@ class EditProfile extends StatelessWidget {
                       maxLines: 7,
                       maxLength: 190,
                       decoration: InputDecoration(
-                        contentPadding:
-                            EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+                        contentPadding: const EdgeInsets.symmetric(
+                            vertical: 5, horizontal: 10),
                         floatingLabelBehavior: FloatingLabelBehavior.never,
-                        border: OutlineInputBorder(),
+                        border: const OutlineInputBorder(),
                         label: Text(mainController.currentUserData['about_me']),
                         // labelStyle: TextStyle(overflow: TextOverflow.ellipsis)
                       ),

@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:quarrel/main.dart';
 import 'package:get/get.dart';
 import 'package:quarrel/widgets/input_field.dart';
-import 'package:quarrel/services/controllers.dart';
+import 'package:quarrel/services/page_controllers.dart';
 import 'package:quarrel/services/firebase_services.dart';
 
 class Login extends StatelessWidget {
@@ -30,7 +30,7 @@ class Login extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 // mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  SizedBox(
+                  const SizedBox(
                     height: 30,
                   ),
                   Text(
@@ -41,7 +41,7 @@ class Login extends StatelessWidget {
                     ),
                   ),
                   Text('We\'re excited to see you again!'),
-                  SizedBox(
+                  const SizedBox(
                     height: 40,
                   ),
                   Align(
@@ -74,7 +74,7 @@ class Login extends StatelessWidget {
                     contentTopPadding: 13,
                     suffixIcon: CupertinoIcons.eye,
                   ),
-                  SizedBox(
+                  const SizedBox(
                     height: 40,
                   ),
                   InkWell(
@@ -125,7 +125,7 @@ class Login extends StatelessWidget {
                   color: Color(0xC01D1D1F),
                   height: MediaQuery.of(context).size.height,
                   width: double.infinity,
-                  child: Center(child: CircularProgressIndicator()),
+                  child: const Center(child: CircularProgressIndicator()),
                 ),
               ),
             )),
@@ -147,11 +147,11 @@ class Login extends StatelessWidget {
                         Text('LogIn Failed',
                             style: TextStyle(
                                 fontWeight: FontWeight.bold, fontSize: 18)),
-                        SizedBox(height: 5),
+                        const SizedBox(height: 5),
                         Text('Email or Password is Wrong',
                             style: TextStyle(
                                 fontWeight: FontWeight.bold, fontSize: 15)),
-                        SizedBox(height: 35),
+                        const SizedBox(height: 35),
                         InkWell(
                           onTap: () {
                             loginController.showMessageLogIn.value = false;
@@ -169,8 +169,8 @@ class Login extends StatelessWidget {
                             ),
                             decoration: BoxDecoration(
                                 color: Colors.blueAccent.shade700,
-                                borderRadius:
-                                    BorderRadius.all(Radius.circular(10))),
+                                borderRadius: const BorderRadius.all(
+                                    Radius.circular(10))),
                           ),
                         )
                       ],

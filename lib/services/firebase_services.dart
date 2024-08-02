@@ -3,13 +3,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get/get.dart';
-import 'package:quarrel/main.dart';
-import 'package:quarrel/pages/chats_page.dart';
-import 'package:quarrel/pages/chat_page.dart';
-import 'package:quarrel/pages/friends_page.dart';
-import 'package:quarrel/pages/profile_page.dart';
-import 'package:quarrel/pages/requests_page.dart';
-import 'package:quarrel/services/controllers.dart';
+import 'package:quarrel/services/page_controllers.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 final CollectionReference users =
@@ -22,17 +16,19 @@ Future<List?> signInUser(
   try {
     var userCredential = await FirebaseAuth.instance
         .createUserWithEmailAndPassword(email: email, password: pass);
-    await users.doc(userCredential.user?.uid).set({
+    var userInstance = users.doc(userCredential.user?.uid);
+    await userInstance.set({
       'username': username,
+      'email': email,
       'display_name': displayName != '' ? displayName : username,
       'profile_picture': '',
       'status': 'Online',
       'display_status': 'Online',
-      'pronounce': '',
+      'pronouns': '',
       'about_me': '',
       'friends': []
     });
-    var userData = await users.doc(userCredential.user?.uid).get();
+    var userData = await userInstance.get();
     return [userData.data(), userCredential];
   } on FirebaseAuthException catch (e) {
     if (e.code == 'weak-password') {
@@ -56,7 +52,9 @@ Future<List?> logInUser(String email, String pass) async {
   try {
     var userCredential = await FirebaseAuth.instance
         .signInWithEmailAndPassword(email: email, password: pass);
-    var userData = await users.doc(userCredential.user?.uid).get();
+    var userInstance = users.doc(userCredential.user?.uid);
+    userInstance.update({'status': 'Online'});
+    var userData = await userInstance.get();
     return [userData.data(), userCredential];
   } on FirebaseAuthException catch (e) {
     if (e.code == 'user-not-found') {
@@ -76,7 +74,6 @@ saveUserOnDevice(email, pass) async {
   final SharedPreferences prefs = await SharedPreferences.getInstance();
   await prefs.setString('email', email);
   await prefs.setString('password', pass);
-  print('saved data');
 }
 
 autoLogin() async {
@@ -87,7 +84,9 @@ autoLogin() async {
     try {
       var userCredential = await FirebaseAuth.instance
           .signInWithEmailAndPassword(email: email, password: pass);
-      var userData = await users.doc(userCredential.user?.uid).get();
+      var userInstance = users.doc(userCredential.user?.uid);
+      userInstance.update({'status': 'Online'});
+      var userData = await userInstance.get();
       return [true, userData.data(), userCredential];
     } on FirebaseAuthException catch (e) {
       if (e.code == 'user-not-found') {
@@ -447,6 +446,18 @@ sendMessage(chatId, message, clientUserId) async {
     'attachments': []
   });
   chatRef.update({'latest_message': message, 'time_stamp': time});
+}
+
+editMessage(chatId, messageId, message) {
+  FirebaseFirestore.instance
+      .collection('chats')
+      .doc(chatId)
+      .collection('messages')
+      .doc(messageId)
+      .update({
+    'message': message,
+    'edited': true,
+  });
 }
 
 deleteMessage(chatId, messageId) {

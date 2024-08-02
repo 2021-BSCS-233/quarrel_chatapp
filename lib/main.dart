@@ -1,5 +1,3 @@
-import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:get/get.dart';
@@ -10,14 +8,20 @@ import 'package:quarrel/pages/chats_page.dart';
 import 'package:quarrel/pages/friends_page.dart';
 import 'package:quarrel/pages/profile_page.dart';
 import 'package:quarrel/services/firebase_services.dart';
+import 'package:quarrel/services/language_controller.dart';
 import 'package:quarrel/widgets/popup_menus.dart';
 import 'package:quarrel/widgets/status_icons.dart';
 import 'package:quarrel/firebase_options.dart';
-import 'package:quarrel/services/controllers.dart';
+import 'package:quarrel/services/page_controllers.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+// import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+// import 'package:flutter_localizations/flutter_localizations.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  final SharedPreferences prefs = await SharedPreferences.getInstance();
+  Get.put(LocalizationController(prefs: prefs));
   runApp(GetMaterialApp(
     debugShowCheckedModeBanner: false,
     theme: ThemeData.dark().copyWith(
@@ -32,18 +36,12 @@ Future<void> main() async {
           toolbarTextStyle: TextStyle(fontFamily: 'gg_sans')),
       scaffoldBackgroundColor: Colors.black,
     ),
-    // localizationsDelegates: [
-    //   GlobalMaterialLocalizations.delegate,
-    //   GlobalWidgetsLocalizations.delegate,
-    //   GlobalCupertinoLocalizations.delegate,
-    // ],
-    // supportedLocales: [
-    //   Locale('en'), // English
-    //   Locale('es'), // Spanish
-    // ],
-    localizationsDelegates: AppLocalizations.localizationsDelegates,
-    supportedLocales: AppLocalizations.supportedLocales,
-    locale: Locale('en'),
+    // localizationsDelegates: AppLocalizations.localizationsDelegates,
+    // supportedLocales: AppLocalizations.supportedLocales,
+    // locale: Locale('en'),
+    translations: Messages(),
+    locale: Get.locale,
+    fallbackLocale: const Locale('en', ''),
     home: Loading(),
   ));
 }
@@ -67,8 +65,7 @@ class Loading extends StatelessWidget {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text("We could not access our services"),
-                    Text("Check your connection or try again later")
+                    Text(snapshot.error.toString()),
                   ],
                 ),
               ));
@@ -82,7 +79,6 @@ class Loading extends StatelessWidget {
     var userData;
     initialMain ? (userData = await autoLogin()) : null;
     if (userData[0]) {
-      print('log data available');
       userData[1]['id'] = userData[2].user.uid;
       return Home(
         userData: userData[1],
@@ -132,13 +128,13 @@ class Home extends StatelessWidget {
                   type: BottomNavigationBarType.fixed,
                   items: [
                     BottomNavigationBarItem(
-                        icon: Icon(CupertinoIcons.chat_bubble_2_fill),
-                        label: 'Messages'),
+                        icon: const Icon(CupertinoIcons.chat_bubble_2_fill),
+                        label: 'messages'.tr),
                     // BottomNavigationBarItem(
                     //     icon: Icon(Icons.notifications),
                     //     label: 'Notifications'),
                     BottomNavigationBarItem(
-                        icon: Icon(Icons.people), label: 'Friends'),
+                        icon: const Icon(Icons.people), label: 'friends'.tr),
                     BottomNavigationBarItem(
                         icon: Obx(() => SizedBox(
                               height: mainController.updateM.value == 1 ? 26 : 26,
@@ -162,15 +158,15 @@ class Home extends StatelessWidget {
                                     bottom: -1,
                                     right: -1,
                                     child: StatusIcon(
-                                      icon_type: mainController.currentUserData[
+                                      iconType: mainController.currentUserData[
                                           'display_status'],
-                                      border_color: Color(0xFF222222),
+                                      borderColor: Color(0xFF222222),
                                     ),
                                   ),
                                 ],
                               ),
                             )),
-                        label: 'Profile'),
+                        label: 'profile'.tr),
                   ],
                 )),
           ],
@@ -192,7 +188,7 @@ class Home extends StatelessWidget {
               ),
             )),
         Obx(() => AnimatedPositioned(
-              duration: Duration(milliseconds: 200),
+              duration: const Duration(milliseconds: 200),
               curve: Curves.easeInOut,
               bottom: mainController.showMenu.value
                   ? 0.0

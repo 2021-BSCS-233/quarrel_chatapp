@@ -2,71 +2,69 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class StatusIcon extends StatelessWidget {
-  final String icon_type;
-  final double? icon_size;
-  final double? icon_border;
-  final Color? border_color;
+  final String iconType;
+  final double? iconSize;
+  final double? iconBorder;
+  final Color? borderColor;
 
-  StatusIcon(
-      {required this.icon_type,
-      this.icon_border,
-      this.icon_size,
-      this.border_color});
+  const StatusIcon(
+      {super.key,
+      required this.iconType,
+      this.iconBorder,
+      this.iconSize,
+      this.borderColor});
 
   @override
   Widget build(BuildContext context) {
-    double size = icon_size ?? 16.0;
-    double border = icon_border ?? 2.5;
-    if (icon_type == 'Online') {
+    double size = iconSize ?? 16.0;
+    double border = iconBorder ?? 2.5;
+    if (iconType == 'Online') {
       return Container(
         width: size,
         height: size,
         decoration: BoxDecoration(
-          border: Border.all(width: border, color: border_color ?? Colors.black),
+          border: Border.all(width: border, color: borderColor ?? Colors.black),
           shape: BoxShape.circle,
           color: Colors.green,
         ),
       );
-    } else if (icon_type == 'DND') {
+    } else if (iconType == 'DND') {
       return Container(
         width: size,
         height: size,
-        child: Center(
-          child: Container(
-            height: 2.5,
-            width: 7.5,
-            color: Colors.black,
-          ),
-        ),
         decoration: BoxDecoration(
-          border: Border.all(width: border, color: border_color ?? Colors.black),
+          border: Border.all(width: border, color: borderColor ?? Colors.black),
           shape: BoxShape.circle,
           color: Colors.red.shade600,
         ),
+        child: Center(
+          child: Container(
+            height: size / 6,
+            width: size / 2.2,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.all(Radius.circular(2)),
+              color: Colors.black,
+            ),
+          ),
+        ),
       );
-    } else if (icon_type == 'Asleep') {
+    } else if (iconType == 'Asleep') {
       return Container(
         width: size,
         height: size,
-        child: Icon(CupertinoIcons.moon_fill, color: Colors.yellow, size: size/1.4,),
         decoration: BoxDecoration(
-          border: Border.all(width: border, color: border_color ?? Colors.black),
+          border: Border.all(width: border, color: borderColor ?? Colors.black),
           shape: BoxShape.circle,
-          color: border_color ?? Colors.black,
+          color: borderColor ?? Colors.black,
+        ),
+        child: Icon(
+          CupertinoIcons.moon_fill,
+          color: Colors.yellow,
+          size: size / 1.4,
         ),
       );
-    } else if (icon_type == 'Offline') {
+    } else if (iconType == 'Offline') {
       return Container(
-        child: Center(
-          child: Container(
-            width: 5,
-            height: 5,
-            decoration: BoxDecoration(
-                border: Border.all(width: 0, color: border_color ?? Colors.black),
-                color: Colors.black,
-                shape: BoxShape.circle),
-          ),
-        ),
         width: size,
         height: size,
         decoration: BoxDecoration(
@@ -74,25 +72,36 @@ class StatusIcon extends StatelessWidget {
           shape: BoxShape.circle,
           color: Colors.grey.shade600,
         ),
+        child: Center(
+          child: Container(
+            width: size / 3.5,
+            height: size / 3.5,
+            decoration: BoxDecoration(
+                border:
+                    Border.all(width: 0, color: borderColor ?? Colors.black),
+                color: Colors.black,
+                shape: BoxShape.circle),
+          ),
+        ),
       );
     } else {
       return Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          border: Border.all(width: border),
+          shape: BoxShape.circle,
+          color: Colors.grey.shade600,
+        ),
         child: Center(
           child: Container(
-            width: 5,
-            height: 5,
+            width: size / 3.5,
+            height: size / 3.5,
             decoration: BoxDecoration(
                 border: Border.all(width: 0),
                 color: Colors.black,
                 shape: BoxShape.circle),
           ),
-        ),
-        width: size,
-        height: size,
-        decoration: BoxDecoration(
-          border: Border.all(width: border),
-          shape: BoxShape.circle,
-          color: Colors.grey.shade600,
         ),
       );
     }

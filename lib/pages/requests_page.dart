@@ -2,11 +2,9 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:quarrel/services/controllers.dart';
+import 'package:quarrel/services/page_controllers.dart';
 import 'package:quarrel/widgets/input_field.dart';
 import 'package:quarrel/services/firebase_services.dart';
-
-
 
 class Requests extends StatelessWidget {
   final MainController mainController = Get.find<MainController>();
@@ -21,14 +19,14 @@ class Requests extends StatelessWidget {
       child: Scaffold(
         appBar: AppBar(
           title: Text(
-            'Requests',
-            style: TextStyle(
+            'requests'.tr,
+            style: const TextStyle(
                 fontWeight: FontWeight.bold,
                 color: Color(0xD0FFFFFF),
                 fontSize: 22),
           ),
           bottom: TabBar(
-            tabs: [Tab(text: 'Incoming'), Tab(text: 'Outgoing')],
+            tabs: [Tab(text: 'incoming'.tr), Tab(text: 'outgoing'.tr)],
             indicatorColor: Colors.transparent,
             unselectedLabelColor: Colors.grey,
             labelColor: Colors.white,
@@ -42,7 +40,7 @@ class Requests extends StatelessWidget {
               return snapshot.data!;
             } else if (snapshot.hasError) {
               print(snapshot.error);
-              return Material(
+              return const Material(
                 color: Colors.transparent,
                 child: Center(
                   child: Column(
@@ -63,15 +61,19 @@ class Requests extends StatelessWidget {
   }
 
   Future<Widget> requestsData() async {
-    requestsController.initial ? await requestsController.getInitialData(mainController.currentUserData['id']) : null;
+    requestsController.initial
+        ? await requestsController
+            .getInitialData(mainController.currentUserData['id'])
+        : null;
     return TabBarView(
       children: [
         Container(
           padding: EdgeInsets.only(left: 10),
-          child: Obx(() => requestsController.updateI.value == requestsController.updateI.value &&
-              requestsController.incomingRequestsData.isEmpty
+          child: Obx(() => requestsController.updateI.value ==
+                      requestsController.updateI.value &&
+                  requestsController.incomingRequestsData.isEmpty
               ? Center(
-                  child: Text('You don\'t have incoming requests'),
+                  child: Text('incomingEmpty'.tr),
                 )
               : ListView.builder(
                   itemCount: requestsController.incomingRequestsData.length,
@@ -85,24 +87,26 @@ class Requests extends StatelessWidget {
                       child: ListTile(
                         dense: true,
                         leading: CircleAvatar(
-                          backgroundImage: requestsController.incomingRequestsData[index]['user']
+                          backgroundImage: requestsController
+                                          .incomingRequestsData[index]['user']
                                       ['profile_picture'] !=
                                   ''
                               ? CachedNetworkImageProvider(
-                              requestsController.incomingRequestsData[index]['user']
-                                      ['profile_picture'])
+                                  requestsController.incomingRequestsData[index]
+                                      ['user']['profile_picture'])
                               : const AssetImage('assets/images/default.png')
                                   as ImageProvider,
                           radius: 17,
                           backgroundColor: Color(0x20F2F2F2),
                         ),
                         title: Text(
-                          requestsController.incomingRequestsData[index]['user']['display_name'],
+                          requestsController.incomingRequestsData[index]['user']
+                              ['display_name'],
                           style: const TextStyle(
                               fontWeight: FontWeight.bold, fontSize: 16),
                         ),
-                        subtitle: Text(
-                            requestsController.incomingRequestsData[index]['user']['username']),
+                        subtitle: Text(requestsController
+                            .incomingRequestsData[index]['user']['username']),
                         trailing: Container(
                           width: 100,
                           child: Row(
@@ -118,7 +122,8 @@ class Requests extends StatelessWidget {
                                     )),
                                 onTap: () async {
                                   await requestAction(
-                                      requestsController.incomingRequestsData[index]['id'],
+                                      requestsController
+                                          .incomingRequestsData[index]['id'],
                                       'accept');
                                 },
                               ),
@@ -129,13 +134,14 @@ class Requests extends StatelessWidget {
                                 child: Container(
                                     width: 35,
                                     height: 40,
-                                    child: Icon(
+                                    child: const Icon(
                                       Icons.close,
                                       color: Colors.red,
                                     )),
                                 onTap: () {
                                   requestAction(
-                                      requestsController.incomingRequestsData[index]['id'],
+                                      requestsController
+                                          .incomingRequestsData[index]['id'],
                                       'deny');
                                 },
                               )
@@ -172,9 +178,13 @@ class Requests extends StatelessWidget {
                           child: TextButton(
                             onPressed: () {
                               requestsController.fieldCheck.value = false;
-                              sendRequest(mainController.currentUserData['id'],
-                                  requestsController.requestsFieldController.text.trim());
-                              requestsController.requestsFieldController.text = '';
+                              sendRequest(
+                                  mainController.currentUserData['id'],
+                                  requestsController
+                                      .requestsFieldController.text
+                                      .trim());
+                              requestsController.requestsFieldController.text =
+                                  '';
                             },
                             style: ButtonStyle(
                               padding: MaterialStateProperty.all<EdgeInsets>(
@@ -191,13 +201,15 @@ class Requests extends StatelessWidget {
                 ],
               ),
               Obx(() => Expanded(
-                    child: requestsController.updateO.value == requestsController.updateO.value &&
-                        requestsController.outgoingRequestsData.isEmpty
+                    child: requestsController.updateO.value ==
+                                requestsController.updateO.value &&
+                            requestsController.outgoingRequestsData.isEmpty
                         ? Center(
-                            child: Text('You haven\'t sent any requests'),
+                            child: Text('outgoingEmpty'.tr),
                           )
                         : ListView.builder(
-                            itemCount: requestsController.outgoingRequestsData.length,
+                            itemCount:
+                                requestsController.outgoingRequestsData.length,
                             shrinkWrap: true,
                             itemBuilder: (context, index) {
                               return Container(
@@ -210,12 +222,14 @@ class Requests extends StatelessWidget {
                                 child: ListTile(
                                   dense: true,
                                   leading: CircleAvatar(
-                                    backgroundImage: requestsController.outgoingRequestsData[index]
+                                    backgroundImage: requestsController
+                                                    .outgoingRequestsData[index]
                                                 ['user']['profile_picture'] !=
                                             ''
                                         ? CachedNetworkImageProvider(
-                                        requestsController.outgoingRequestsData[index]['user']
-                                                ['profile_picture'])
+                                            requestsController
+                                                    .outgoingRequestsData[index]
+                                                ['user']['profile_picture'])
                                         : const AssetImage(
                                                 'assets/images/default.png')
                                             as ImageProvider,
@@ -223,25 +237,29 @@ class Requests extends StatelessWidget {
                                     backgroundColor: Color(0x20F2F2F2),
                                   ),
                                   title: Text(
-                                    requestsController.outgoingRequestsData[index]['user']
+                                    requestsController
+                                            .outgoingRequestsData[index]['user']
                                         ['display_name'],
-                                    style: TextStyle(
+                                    style: const TextStyle(
                                         fontWeight: FontWeight.bold,
                                         fontSize: 16),
                                   ),
-                                  subtitle: Text(requestsController.outgoingRequestsData[index]
-                                      ['user']['username']),
+                                  subtitle: Text(requestsController
+                                          .outgoingRequestsData[index]['user']
+                                      ['username']),
                                   trailing: InkWell(
                                     child: Container(
                                         width: 40,
                                         height: 40,
-                                        child: Icon(
+                                        child: const Icon(
                                           Icons.close,
                                           color: Colors.red,
                                         )),
                                     onTap: () {
                                       requestAction(
-                                          requestsController.outgoingRequestsData[index]['id'],
+                                          requestsController
+                                                  .outgoingRequestsData[index]
+                                              ['id'],
                                           'deny');
                                     },
                                   ),

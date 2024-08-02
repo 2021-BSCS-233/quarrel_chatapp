@@ -51,7 +51,6 @@ class SigninController extends GetxController {
         user.length <= 20 &&
         RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$').hasMatch(email) &&
         RegExp(r'.{8,}').hasMatch(pass)) {
-      print('All accepted');
       var response = await signInUser(user, display, email, pass);
       if (response?[0] != false) {
         return response;
@@ -81,7 +80,6 @@ class SigninController extends GetxController {
       }
       showOverlaySignIn.value = true;
       showMessageSignIn.value = true;
-      print('failed');
       return 0;
     }
   }
@@ -96,7 +94,6 @@ class LoginController extends GetxController {
   sendLogIn(email, pass) async {
     if (RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$').hasMatch(email) &&
         RegExp(r'.{8,}').hasMatch(pass)) {
-      print('sending log in');
       var response = await logInUser(email, pass);
       if (response?[0] != false) {
         return response;
@@ -104,7 +101,6 @@ class LoginController extends GetxController {
         return 0;
       }
     } else {
-      print('login denied');
       return 0;
     }
   }
@@ -162,17 +158,46 @@ class ChatsController extends GetxController {
 }
 
 class ChatController extends GetxController {
+  var chatId = '';
   var chatContent = [];
   var messagesListenerRef;
   var userMap = {};
   var lastSender = '';
   var initial = true;
+  var editMode = false;
   var messageSelected = 0;
   var showMenu = false.obs;
   var updateC = 0.obs;
   var showProfile = false.obs;
   var fieldCheck = false.obs;
+  final chatFocusNode = FocusNode();
   TextEditingController chatFieldController = TextEditingController();
+
+  ChatController({required this.chatId});
+
+  void toggleMenu(int index) {
+    if (index != -1) {
+      messageSelected = index;
+    }
+    showMenu.value = true;
+  }
+
+  void toggleProfile(int index) {
+    if (index != -1) {
+      messageSelected = index;
+    }
+    showProfile.value = !showProfile.value;
+  }
+
+  void changing() {
+    fieldCheck.value = (!editMode && chatFieldController.text != ''
+        ? true
+        : editMode &&
+                chatFieldController.text !=
+                    chatContent[messageSelected]['message']
+            ? true
+            : false);
+  }
 
   getMessages(chatId) async {
     messagesListenerRef = await messagesListener(chatId);
@@ -191,6 +216,18 @@ class ChatController extends GetxController {
       chatContent.removeAt(index);
     }
     updateC.value += 1;
+  }
+
+  editChatMessage() {
+    showMenu.value = false;
+    editMode = true;
+    chatFieldController.text = chatContent[messageSelected]['message'];
+    chatFocusNode.requestFocus();
+  }
+
+  deleteChatMessage() {
+    deleteMessage(chatId, chatContent[messageSelected]['id']);
+    showMenu.value = false;
   }
 }
 
@@ -244,4 +281,16 @@ class EditProfileController extends GetxController {
   TextEditingController aboutMeController = TextEditingController();
   var image;
   var updateP = 0.obs;
+}
+
+class SettingsController extends GetxController {
+  var showMenu = false.obs;
+
+  TextEditingController usernameController = TextEditingController();
+  TextEditingController emailController = TextEditingController();
+  TextEditingController passwordController = TextEditingController();
+
+  void toggleMenu() {
+    showMenu.value = !showMenu.value;
+  }
 }

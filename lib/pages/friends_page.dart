@@ -2,9 +2,8 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:quarrel/pages/chat_page.dart';
 import 'package:quarrel/pages/requests_page.dart';
-import 'package:quarrel/services/controllers.dart';
+import 'package:quarrel/services/page_controllers.dart';
 import 'package:quarrel/services/firebase_services.dart';
 
 class Friends extends StatelessWidget {
@@ -20,7 +19,7 @@ class Friends extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Friends',
+          'friends'.tr,
           style: TextStyle(
               fontWeight: FontWeight.bold,
               color: Color(0xD0FFFFFF),
@@ -33,23 +32,23 @@ class Friends extends StatelessWidget {
             },
             child: Container(
               height: 40,
-              width: 120,
+              width: 130,
               decoration: BoxDecoration(
                   color: Colors.blueAccent.shade700,
-                  borderRadius: BorderRadius.all(Radius.circular(25))),
+                  borderRadius: const BorderRadius.all(Radius.circular(25))),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.person_add),
-                  SizedBox(
+                  const Icon(Icons.person_add),
+                  const SizedBox(
                     width: 10,
                   ),
-                  Text('Add Friend'),
+                  Text('addFriend'.tr),
                 ],
               ),
             ),
           ),
-          SizedBox(
+          const SizedBox(
             width: 10,
           )
         ],
@@ -61,7 +60,7 @@ class Friends extends StatelessWidget {
             return snapshot.data!;
           } else if (snapshot.hasError) {
             print(snapshot.error);
-            return Material(
+            return const Material(
                 color: Colors.transparent,
                 child: Center(
                   child: Column(
@@ -73,18 +72,13 @@ class Friends extends StatelessWidget {
                   ),
                 ));
           }
-          return Center(child: CircularProgressIndicator());
+          return const Center(child: CircularProgressIndicator());
         },
       ),
     );
   }
 
   Future<Widget> friendsUI() async {
-    friendsController.initial
-        ? await friendsController
-            .getInitialData(mainController.currentUserData['id'])
-        : null;
-
     return Obx(() => friendsController.updateF.value ==
                 friendsController.updateF.value &&
             friendsController.friendsData.isEmpty
@@ -92,13 +86,15 @@ class Friends extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text('You do not have any friends'),
-                Text('Start adding some friends to chat with')
+                Text(
+                  'friendsEmpty'.tr,
+                  textAlign: TextAlign.center,
+                ),
               ],
             ),
           )
         : Container(
-            padding: EdgeInsets.only(left: 10),
+            padding: const EdgeInsets.only(left: 10),
             child: ListView.builder(
                 itemCount: friendsController.friendsData.length,
                 shrinkWrap: true,
@@ -129,15 +125,16 @@ class Friends extends StatelessWidget {
                       ),
                       title: Text(
                         friendsController.friendsData[index]['display_name'],
-                        style: TextStyle(fontWeight: FontWeight.bold),
+                        style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
-                      trailing: Container(
+                      trailing: SizedBox(
                         width: 70,
                         child: Row(
                           children: [
                             InkWell(
                               enableFeedback: true,
-                              child: Icon(CupertinoIcons.chat_bubble_text_fill),
+                              child: const Icon(
+                                  CupertinoIcons.chat_bubble_text_fill),
                               onTap: () {
                                 // Get.to(Chat(
                                 //   chatId: friendsData[index]['chat_id'],
@@ -147,12 +144,12 @@ class Friends extends StatelessWidget {
                                 // ));
                               },
                             ),
-                            SizedBox(
+                            const SizedBox(
                               width: 20,
                             ),
                             InkWell(
                               enableFeedback: true,
-                              child: Icon(
+                              child: const Icon(
                                 Icons.person_remove,
                                 color: Colors.red,
                               ),

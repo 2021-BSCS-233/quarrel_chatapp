@@ -4,7 +4,7 @@ import 'package:get/get.dart';
 import 'package:quarrel/pages/requests_page.dart';
 import 'package:quarrel/widgets/dm_chat_tile.dart';
 import 'package:quarrel/widgets/status_icons.dart';
-import 'package:quarrel/services/controllers.dart';
+import 'package:quarrel/services/page_controllers.dart';
 
 class Chats extends StatelessWidget {
   final MainController mainController = Get.find<MainController>();
@@ -20,7 +20,7 @@ class Chats extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Messages',
+          'messages'.tr,
           style: TextStyle(
               fontWeight: FontWeight.bold,
               color: Color(0xD0FFFFFF),
@@ -38,16 +38,16 @@ class Chats extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.person_add),
-                  SizedBox(
+                  const Icon(Icons.person_add),
+                  const SizedBox(
                     width: 10,
                   ),
-                  Text('Add Friend'),
+                  Text('addFriend'.tr),
                 ],
               ),
             ),
           ),
-          SizedBox(
+          const SizedBox(
             width: 25,
           )
         ],
@@ -59,7 +59,7 @@ class Chats extends StatelessWidget {
             return snapshot.data!;
           } else if (snapshot.hasError) {
             print(snapshot.error);
-            return Material(
+            return const Material(
                 color: Colors.transparent,
                 child: Center(
                   child: Column(
@@ -71,7 +71,7 @@ class Chats extends StatelessWidget {
                   ),
                 ));
           }
-          return Center(child: CircularProgressIndicator());
+          return const Center(child: CircularProgressIndicator());
         },
       ),
     );
@@ -82,8 +82,12 @@ class Chats extends StatelessWidget {
         ? await chatsController
             .getInitialData(mainController.currentUserData['id'])
         : null;
+    friendsController.initial
+        ? await friendsController
+            .getInitialData(mainController.currentUserData['id'])
+        : null;
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 10),
       child: Column(
         children: [
           Obx(
@@ -102,7 +106,7 @@ class Chats extends StatelessWidget {
                         scrollDirection: Axis.horizontal,
                         itemBuilder: (context, index) {
                           return Container(
-                            margin: EdgeInsets.all(5),
+                            margin: const EdgeInsets.all(5),
                             height: 80,
                             width: 80,
                             decoration: BoxDecoration(
@@ -117,7 +121,7 @@ class Chats extends StatelessWidget {
                                 },
                                 child: Stack(
                                   children: [
-                                    Container(
+                                    SizedBox(
                                       height: 50,
                                       width: 50,
                                       child: CircleAvatar(
@@ -139,7 +143,7 @@ class Chats extends StatelessWidget {
                                       bottom: -2,
                                       right: -2,
                                       child: StatusIcon(
-                                        icon_type: friendsController
+                                        iconType: friendsController
                                                         .friendsData[index]
                                                     ['status'] ==
                                                 'Online'
@@ -148,8 +152,8 @@ class Chats extends StatelessWidget {
                                                 ['display_status']
                                             : friendsController
                                                 .friendsData[index]['status'],
-                                        icon_size: 17,
-                                        icon_border: 3.5,
+                                        iconSize: 17,
+                                        iconBorder: 3.5,
                                       ),
                                     ),
                                   ],
@@ -168,9 +172,11 @@ class Chats extends StatelessWidget {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Text('You Do Not Have Any Friends'),
-                            Text('Add Friends to Chat With'),
-                            SizedBox(
+                            Text(
+                              'chatsEmpty'.tr,
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(
                               height: 90,
                             )
                           ],
@@ -185,7 +191,7 @@ class Chats extends StatelessWidget {
                                   'dm'
                               ? DmChatTile(
                                   chatData: chatsController.chatsData[index])
-                              : Container(
+                              : SizedBox(
                                   height: 50,
                                   width: 100,
                                   child: Center(

@@ -2,8 +2,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-bool hidden = true;
-
 class InputField extends StatelessWidget {
   final IconData? prefixIcon;
   final IconData? suffixIcon;
@@ -20,8 +18,9 @@ class InputField extends StatelessWidget {
   final List<TextInputFormatter>? inputFormats;
   final int? maxLength;
   final int? maxLines;
+  final FocusNode? fieldFocusNode;
 
-  InputField(
+  const InputField(
       {super.key,
       required this.fieldLabel,
       required this.controller,
@@ -37,15 +36,18 @@ class InputField extends StatelessWidget {
       this.verticalMargin,
       this.maxLength,
       this.contentTopPadding,
-      this.maxLines});
+      this.maxLines,
+      this.fieldFocusNode});
 
   @override
   Widget build(BuildContext context) {
+    bool hidden = true;
     return Container(
       margin: EdgeInsets.symmetric(
           horizontal: horizontalMargin ?? 5, vertical: verticalMargin ?? 0),
-      height: fieldHeight ?? null,
+      height: fieldHeight,
       child: TextFormField(
+        focusNode: fieldFocusNode,
         inputFormatters: inputFormats,
         maxLength: maxLength,
         minLines: 1,
@@ -76,7 +78,7 @@ class InputField extends StatelessWidget {
                   onTap: () {
                     hidden = !hidden;
                   },
-                  child: Icon(CupertinoIcons.eye),
+                  child: const Icon(CupertinoIcons.eye),
                 )
               : suffixIcon == Icons.all_inclusive
                   ? Icon(
